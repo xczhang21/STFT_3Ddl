@@ -9,6 +9,9 @@ import sys
 from pathlib import Path
 from hdf5storage import loadmat
 from scipy import signal
+from tqdm import tqdm
+import random
+
 
 def get_class_names(directory_path):
     # 转换为Path对象
@@ -69,34 +72,55 @@ def get_nperseg_noverlap(len_signal, lfaxis, ltaxis):
     noverlap = int((ltaxis * nperseg - len_signal)/(ltaxis-2))-1
     return nperseg, noverlap
 
-def temp_check_get_nperseg_noverlap(signal_data, fs, window, nperseg, noverlap, lfaxis, ltaxis, padded, id):
-    # 临时用来测试get_nperseg_noverlap函数是否真确
-    faxis, taxis, spectrum = signal.stft(signal_data, fs, window=window, nperseg=nperseg, noverlap=noverlap, boundary=None, padded=padded)
-    if len(faxis) != lfaxis or len(taxis) != ltaxis:
-        if len(taxis) > ltaxis:
-            if len(taxis) < ltaxis + 5:
-                print(f"!!!!###########################################################################################################################!!!!!{len(taxis)-ltaxis}")
-                return nperseg, noverlap, False, padded
-            noverlap = noverlap - 1
-            # if padded == False:
-            #     noverlap = noverlap - 1
-            # else:
-            #     padded = False
-            print(f"#{id}#####({nperseg})### len(taxis)={len(taxis)}>{lfaxis}=ltaxis\t noverlap={noverlap}\t padded={padded} ")
-            return nperseg, noverlap, True, padded
-        elif len(taxis) < ltaxis:
-            if padded == True:
-                noverlap = noverlap + 1
-                padded = False
-            else:
-                padded = True
-            print(f"#{id}#####({nperseg})### len(taxis)={len(taxis)}<{lfaxis}=ltaxis\t noverlap={noverlap}\t padded={padded} ")
-            return nperseg, noverlap, True, padded
-    print(f"len(signal_data)={len(signal_data)}\t len(faxis)={len(faxis)}\t {len(faxis)}\t len(taxis)={len(taxis)}\t {ltaxis}\t padded:{padded}")
-    return nperseg, noverlap, False, padded
+def temp_check_get_nperseg_noverlap(signal_data, fs, window, nperseg, noverlap, lfaxis, ltaxis, added_flag):
+    faxis, taxis, spectrum = signal.stft(signal_data, fs, window=window, nperseg=nperseg, noverlap=noverlap, boundary=None, padded=True)
+    crop = False # 不用crop
+    flag = True # True：继续循环
+    if len(faxis) != lfaxis:
+        print("len(faxis) != lfaxis")
+        exit()
 
-
+    if len(taxis) == ltaxis:
+        flag = False
+        return nperseg, noverlap, crop, flag, added_flag
+    elif len(taxis) < ltaxis:
+        noverlap = noverlap + 1
+        if added_flag == True:
+            crop = True
+            flag = False
+            return nperseg, noverlap, crop, flag, added_flag
+        else:
+            flag = True
+            return nperseg, noverlap, crop, flag, added_flag
+    else:
+        added_flag = True
+        noverlap = noverlap - 1
+        flag = True
+        return nperseg, noverlap, crop, flag, added_flag
 dataset_path = Path('/home/zhang/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/')
+
+def get_spectrum_corp(signal_data, fs, window, nperseg, noverlap, lfaxis, ltaxis, crop):
+    faxis, taxis, spectrum = signal.stft(signal_data, fs, window, nperseg, noverlap, boundary=None, padded=True)
+    if len(faxis)<lfaxis or len(taxis)<ltaxis:
+        print('get_matrix_image error')
+        exit()
+    if crop == True:
+        spectrum = spectrum[:lfaxis, :ltaxis]
+    return faxis[:lfaxis], taxis[:ltaxis], np.abs(spectrum)
+
+def save_spectrum_matrix(save_path, spectrum, class_name, data_id, faxis, taxis):
+    data = {'data_class':class_name, 'data_id':data_id, 'faxis':faxis, 'taxis':taxis, 'spectrum':spectrum}
+    save_path = Path(save_path)
+    np.savez(save_path/f"{data_id}.npz", data)
+
+def save_spectrum_image(save_path, spectrum, class_name, data_id, faxis, taxis):
+    plt.pcolormesh(taxis, faxis, np.abs(spectrum))
+    plt.title(f'STFT {data_id} ltaxis*lfaxis={len(taxis)}*{len(faxis)}')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Frequency (Hz)')
+    plt.savefig(save_path/f"{data_id}.png", dpi=len(faxis))
+    
+
 
 window = 'hamming'
 nperseg = 266
@@ -104,8 +128,9 @@ noverlap = 0
 fs = 10000
 scales = [256, 128, 64]
 
-experimet_id = f"w_{window}_np_{nperseg}_no_{noverlap}"
-save_path = Path(f'/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/{experimet_id}/')
+datas = []
+
+
 
 class_names = get_class_names(dataset_path)
 
@@ -116,7 +141,110 @@ for class_name in class_names:
         for scale in scales:
             nperseg, noverlap = get_nperseg_noverlap(len(phase), lfaxis=scale, ltaxis=scale)
             flag = True
+            added_flag = False # 上一次是不是加法操作
             padded = False
             while(flag):
-                nperseg, noverlap, flag, padded = temp_check_get_nperseg_noverlap(phase, fs, window, nperseg=nperseg, noverlap=noverlap, lfaxis=scale, ltaxis=scale, padded=padded, id=iterfile_name)
-            
+                nperseg, noverlap, crop, flag, added_flag = temp_check_get_nperseg_noverlap(phase,fs,window,
+                                                                                            nperseg=nperseg,
+                                                                                            noverlap=noverlap,
+                                                                                            lfaxis=scale,
+                                                                                            ltaxis=scale,
+                                                                                            added_flag=added_flag)
+            datas.append({'id':iterfile_name, 'class':class_name, 'scale':scale,
+                          'nperseg':nperseg, 'noverlap':noverlap,
+                          'signal_data':phase, 'crop':crop})
+
+
+# 数据生成完成，下面的内容注释
+# for data in tqdm(datas, desc="数据处理进度"):
+#     save_path = Path(f'/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/')
+    
+#     faxis, taxis, spectrum = get_spectrum_corp(data['signal_data'], fs=fs, window=window,
+#                                                nperseg=data['nperseg'], noverlap=data['noverlap'],
+#                                                lfaxis=data['scale'], ltaxis=data['scale'], crop=data['crop'])
+    
+#     save_path = save_path/f"scale_{data['scale']}/{data['id']}/"
+#     # 检查save_path是否存在
+#     if not save_path.exists():
+#         save_path.mkdir(parents=True)
+
+#     save_spectrum_matrix(save_path, spectrum, data['class'], data['id'], faxis=faxis, taxis=taxis)
+#     save_spectrum_image(save_path, spectrum, data['class'], data['id'], faxis=faxis, taxis=taxis)
+# 注释结束
+
+
+list_save_path = Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase/")
+
+class_id = {
+    'CARHORN':0,
+    'DRILLING':1,
+    'FOOTSTEPS':2,
+    'HANDHAMMER':3,
+    'HANDSAW':4,
+    'JACKHAMMER':5,
+    'RAIN':6,
+    'SHOVELING':7,
+    'THUNDERSTORM':8,
+    'WELDING':9
+}
+
+class_dict = {
+    'CARHORN':[],
+    'DRILLING':[],
+    'FOOTSTEPS':[],
+    'HANDHAMMER':[],
+    'HANDSAW':[],
+    'JACKHAMMER':[],
+    'RAIN':[],
+    'SHOVELING':[],
+    'THUNDERSTORM':[],
+    'WELDING':[]
+}
+
+
+# 初始化一个集合用于去重
+unique_data = set()
+# 初始化新的字典列表
+new_data_list = []
+
+# 遍历原始数据列表
+for data in datas:
+    # 提取 class 和 id
+    class_name = data['class']
+    id_value = data['id']
+    
+    # 使用 (class_name, id_value) 组合来检查唯一性
+    if (class_name, id_value) not in unique_data:
+        # 如果组合不在集合中，加入集合并添加到新字典列表
+        unique_data.add((class_name, id_value))
+        new_data_list.append({'class': class_name, 'id': id_value})
+
+for data in new_data_list:
+    class_dict[data['class']].append(data['id'])
+
+
+
+# 初始化结果字典
+train_set = {key: [] for key in class_dict.keys()}
+test_set = {key: [] for key in class_dict.keys()}
+
+for category, ids in class_dict.items():
+    # 随机打乱
+    random.shuffle(ids)
+    # 计算切分点
+    split_index = int(len(ids) * 0.8)
+    # 划分训练集和测试集
+    train_set[category] = ids[:split_index]
+    test_set[category] = ids[split_index:]
+
+# 保存训练集到 train.txt
+with open(list_save_path/'train.txt', 'w') as train_file:
+    for category, ids in tqdm(train_set.items(), desc='训练集列表保存进度'):
+        for id_ in ids:
+            train_file.write(f"{id_} {class_id[category]}\n")
+
+# 保存测试集到 test.txt
+with open(list_save_path/'test.txt', 'w') as test_file:
+    for category, ids in tqdm(test_set.items(), desc='测试集列表保存进度'):
+        for id_ in ids:
+            test_file.write(f"{id_} {class_id[category]}\n")
