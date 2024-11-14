@@ -18,13 +18,14 @@ def get_ResNet50_config():
 
 
 # 模型测试
-from resnet_class_modeling import ResNet
-import torch
-import torch.nn as nn
+if __name__ == '__main__':
+    from resnet_class_modeling import ResNet
+    import torch
+    import torch.nn as nn
 
-config = get_ResNet50_config()
-model = ResNet(config)
-input_data = torch.randn(32, 3, 128, 128)
+    config = get_ResNet50_config()
+    model = ResNet(config)
+    input_data = torch.randn(32, 3, 128, 128)
 
-output = model(input_data)
-print(output.shape)
+    output = model(input_data)
+    print(output.shape)
