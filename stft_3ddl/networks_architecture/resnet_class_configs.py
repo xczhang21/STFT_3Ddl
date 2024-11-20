@@ -6,7 +6,7 @@ def get_ResNet50_config():
     """
     config = ml_collections.ConfigDict()
     config.block = 'Bottleneck'
-    config.in_channels = 3
+    config.in_channels = 1
     config.encoder_channels = [3, 4, 23, 3]
     config.num_classes = 10
     config.zero_init_residual = None

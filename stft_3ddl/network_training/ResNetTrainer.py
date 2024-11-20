@@ -3,6 +3,15 @@ import sys
 import random
 from torchvision.transforms import transforms
 from torch.utils.data import DataLoader
+from torch.nn import MSELoss
+from torch.nn import CrossEntropyLoss
+import torch.optim as optim
+from torch.optim import lr_scheduler
+from tensorboardX import SummaryWriter
+from tqdm import tqdm
+import torch
+import os
+import numpy as np
 
 
 
@@ -30,9 +39,159 @@ def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
         split='train',
         transform=transform
     )
+    db_val = ds1k_dataset(
+        base_dir=args.root_path,
+        list_dir=args.list_dir,
+        split='test',
+        transform=transform
+    )
     print("The length of train set is: {}".format(len(db_train)))
 
     def work_init_fn(worker_id):
         random.seed(args.seed + worker_id)
 
-    trainloader = DataLoader
+    trainloader = DataLoader(
+        db_train,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=1,
+        pin_memory=True,
+        worker_init_fn=work_init_fn,
+    )
+    mse_loss = MSELoss() # MSE适用于回归任务
+    ce_loss = CrossEntropyLoss() # 交叉熵适用于分类任务
+
+    optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.05)
+    scheduler = lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.9)
+    writer = SummaryWriter(snapshot_path + '/log')
+    tier_num = 0
+    max_epoch = args.max_epochs
+    max_iterations = args.max_epochs * len(trainloader)
+    logging.info("{} iterations per epoch. {} max iterations".format(len(trainloader), max_iterations))
+    iterator = tqdm(range(max_epoch), ncols=70)
+
+    for epoch_num in iterator:
+        running_loss = 0.0
+        train_correct = 0
+        val_correct = 0
+        total = 0
+        val_total = 0
+        for step, sampled_batch in enumerate(trainloader):
+            model.train()
+            spectrum_batch, label_batch = sampled_batch['spectrum'], sampled_batch['label']
+            spectrum_batch, label_batch = spectrum_batch.cuda(), label_batch.long().cuda()
+            # 前向传播
+            outputs = model(spectrum_batch)
+            loss = ce_loss(outputs, label_batch)
+
+            # 反向传播与优化
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # 累加损失
+            running_loss += loss.item()
+
+            # 计算精度
+            predictions = torch.argmax(outputs, dim=1)
+            train_correct += (predictions == label_batch).sum().item()
+            total += label_batch.size(0)
+
+        # 更新学习率
+        scheduler.step()
+
+        # 计算平均损失和精度
+        avg_loss = running_loss / len(trainloader)
+        accuracy = train_correct / total
+        writer.add_scalar('Loss/train', avg_loss, epoch_num)
+        writer.add_scalar('Accuracy/train', accuracy, epoch_num)
+
+        model.eval()
+        with torch.no_grad():
+            val_labels = torch.Tensor().cuda()
+            val_outputs = torch.Tensor().cuda()
+            for val_data in db_val.datas:
+                spectrum = RandomGenerator.divisive_crop(val_data['spectrum'])
+                spectrum = spectrum.unsqueeze(0).unsqueeze(0)
+                label = RandomGenerator.label_convert(val_data['label'])
+                label = label.unsqueeze(0)
+                spectrum, label = spectrum.cuda(), label.cuda()
+                output = model(spectrum)
+                val_labels = torch.cat((val_labels, label))
+                val_outputs = torch.cat((val_outputs, output))
+
+            # 计算损失
+            val_loss = ce_loss(val_outputs, val_labels.long()).cpu().detach().numpy()
+            
+            # 计算精度
+            predictions = torch.argmax(val_outputs, dim=1)
+            val_correct += (predictions == val_labels).sum().item()
+            val_total += val_labels.size(0)
+
+            # 计算平均精度
+            accuracy = val_correct / val_total
+            logging.info(f'epoch:{epoch_num} val_loss:{val_loss:.4f} val_acc:{accuracy}')
+            writer.add_scalar('Loss/val', val_loss, epoch_num)
+            writer.add_scalar('Accuracy/val', accuracy, epoch_num)
+
+    writer.close()
+
+
+# 文件测试
+if __name__ == '__main__':
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    from networks_architecture.resnet_class_configs import get_ResNet50_config
+    from networks_architecture.resnet_class_modeling import ResNet
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='测试')
+
+    parser.add_argument('--base_lr', type=float)
+    parser.add_argument('--num_classes', type=int)
+    parser.add_argument('--batch_size', type=int)
+    parser.add_argument('--n_gpu', type=int)
+    parser.add_argument('--root_path', type=str)
+    parser.add_argument('--list_dir', type=str)
+    parser.add_argument('--seed', type=int)
+    parser.add_argument('--max_epochs', type=int)
+    parser.add_argument('--task_type', type=str)
+    parser.add_argument('--dataset', type=str)
+    parser.add_argument('--spectrum_size', type=int)
+    parser.add_argument('--net', type=str)
+
+    fake_args = ['--base_lr', '0.001',
+                 '--num_classes', '10',
+                 '--batch_size', '32',
+                 '--n_gpu', '1',
+                 '--root_path', '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
+                 '--list_dir', '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
+                 '--seed', '1234',
+                 '--max_epochs', '100',
+                 '--task_type', 'cla',
+                 '--dataset', 'das1k',
+                 '--spectrum_size', '64',
+                 '--net', 'ResNet50']
+    
+    args = parser.parse_args(fake_args)
+
+    assert args.task_type == 'cla', f"task_type({args.task_type}) is not cla"
+    dataset_name = args.dataset
+    args.exp = "STFT_3Ddl_" + args.task_type + '_' + dataset_name + str(args.spectrum_size)
+
+    snapshot_path = "../model/{}".format(args.exp)
+    snapshot_path = snapshot_path + '_traniner_test'
+    snapshot_path = snapshot_path + '_' + args.net
+    snapshot_path = snapshot_path + '_epo' + str(args.max_epochs)
+    snapshot_path = snapshot_path + '_bs' + str(args.batch_size)
+    snapshot_path = snapshot_path + '_lr' + str(args.base_lr)
+    snapshot_path = snapshot_path + '_ssize' + str(args.spectrum_size)
+
+    if not os.path.exists(snapshot_path):
+        os.makedirs(snapshot_path)
+
+    config_net = get_ResNet50_config()
+    network = ResNet(config=config_net)
+    network = network.cuda()
+
+    trainer = ResNet_trainer_das1k_dataset(args=args, model=network, snapshot_path=snapshot_path)
+    

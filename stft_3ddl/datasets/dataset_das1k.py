@@ -6,28 +6,32 @@ from torch.utils.data import Dataset
 
 
 class RandomGenerator(object):
+    @classmethod
     def divisive_crop(self, spectrum):
         spectrum_array = torch.from_numpy(spectrum.astype(np.float32))
         return spectrum_array
-
+    
+    @classmethod
     def label_convert(self, label):
         # 这地方处理label的方法可能存在问题，因为现在的问题是分类，不是回归
-        label_array = np.array(float(label_array))
+        label_array = np.array(float(label))
         label_array = torch.from_numpy(label_array.astype(np.float32))
         return label_array
     
     def __call__(self, sample):
         spectrum, label = sample['spectrum'], sample['label']
         spectrum_array = self.divisive_crop(spectrum)
+        spectrum_array = spectrum_array.unsqueeze(0)
         label_array = self.label_convert(label)
-        sample = {'id':sample['id'], 'spectrum':spectrum_array, 'label':label_array.int()}
+        sample = {'id':sample['id'], 'spectrum':spectrum_array, 'label':label_array}
+        return sample
 
 def dataset_reader(data_dir, sample_list, max_num_samples, split):
     datas = []
     if split == "train":
-        if max_num_samples != None and max_num_samples<len(sample_list):
-            sample_list = random.sample(sample_list, max_num_samples)
-        random.shuffle(sample_list)
+        # if max_num_samples != None and max_num_samples<len(sample_list):
+            # sample_list = random.sample(sample_list, max_num_samples)
+        # random.shuffle(sample_list)
         for sample in sample_list:
             sample = sample.rstrip()
             sample_id, label = sample.split(' ')
@@ -35,8 +39,8 @@ def dataset_reader(data_dir, sample_list, max_num_samples, split):
             orig_data = np.load(data_path, allow_pickle=True)
             orig_data = orig_data[orig_data.files[0]]
             data = {
-                'id': orig_data.all()['data_id'],
-                'spectrum': orig_data.all()['spectrum'],
+                'id': orig_data.tolist()['data_id'],
+                'spectrum': orig_data.tolist()['spectrum'],
                 'label': label
             }
             datas.append(data)
@@ -51,8 +55,8 @@ def dataset_reader(data_dir, sample_list, max_num_samples, split):
             orig_data = np.load(data_path, allow_pickle=True)
             orig_data = orig_data[orig_data.files[0]]
             data = {
-                'id': orig_data.all()['data_id'],
-                'spectrum': orig_data.all()['spectrum'],
+                'id': orig_data.tolist()['data_id'],
+                'spectrum': orig_data.tolist()['spectrum'],
                 'label': label
             }
             datas.append(data)
@@ -79,7 +83,6 @@ class ds1k_dataset(Dataset):
         sample = self.datas[index]
         if self.transform:
             sample = self.transform(sample)
-        print('test')
         return sample
 
 
