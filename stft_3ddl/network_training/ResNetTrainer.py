@@ -14,6 +14,12 @@ import os
 import numpy as np
 
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utilities.spectrum2iamge import spectrum2image
+from utilities.grad_cam import GradCAM
+from utilities.grad_cam import visualize_cam
+
+
 
 def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
     from datasets.dataset_das1k import ds1k_dataset, RandomGenerator
@@ -108,11 +114,15 @@ def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
 
         model.eval()
         with torch.no_grad():
+            val_spectrums = []
             val_labels = torch.Tensor().cuda()
             val_outputs = torch.Tensor().cuda()
             for val_data in db_val.datas:
                 spectrum = RandomGenerator.divisive_crop(val_data['spectrum'])
-                spectrum = spectrum.unsqueeze(0).unsqueeze(0)
+                spectrum_id = val_data['id']
+                spectrum = spectrum.unsqueeze(0)
+                val_spectrums.append({'spectrum':spectrum, 'id':spectrum_id})
+                spectrum = spectrum.unsqueeze(0)
                 label = RandomGenerator.label_convert(val_data['label'])
                 label = label.unsqueeze(0)
                 spectrum, label = spectrum.cuda(), label.cuda()
@@ -133,6 +143,36 @@ def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
             logging.info(f'epoch:{epoch_num} val_loss:{val_loss:.4f} val_acc:{accuracy}')
             writer.add_scalar('Loss/val', val_loss, epoch_num)
             writer.add_scalar('Accuracy/val', accuracy, epoch_num)
+        
+        save_CAM_interval = 5 # grad_CAM生成周期
+        save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
+        if epoch_num == 0:
+            spectrum_id = val_spectrums[save_CAM_num]['id']
+            spectrum = val_spectrums[save_CAM_num]['spectrum']
+            writer.add_image(f'{spectrum_id}', torch.flip(spectrum, dims=[1]), 0, dataformats='CHW')
+
+        if (epoch_num + 1) % save_CAM_interval == 0:
+            # 每20次迭代，保存一次spectrum 图和 grad_CAM图
+            spectrum_id = val_spectrums[save_CAM_num]['id']
+            spectrum = val_spectrums[save_CAM_num]['spectrum']
+
+            grad_cam = GradCAM(model, target_layer=model.layer4)
+            # grad_cam = GradCAM(model, target_layer=model.layer4[-1].conv3)
+            # grad_cam = GradCAM(model, target_layer=model.layer3)
+            cam = grad_cam.generate_cam(spectrum.unsqueeze(0).cuda(), target_class=None, target_batch=0)
+            superimposed_image = visualize_cam(cam, spectrum)
+            writer.add_image(f'{spectrum_id}/epoch_{epoch_num}', superimposed_image, 1, dataformats='HWC')
+        
+        save_interval = 50
+        if epoch_num > int(max_epoch / 2) and (epoch_num + 1) % save_interval == 0:
+            save_mode_path = os.path.join(snapshot_path, 'epoch_' + str(epoch_num) + '.pth')
+            torch.save(model.state_dict(), save_mode_path)
+            logging.info("save model to {}".format(save_mode_path))
+        
+        if epoch_num >= max_epoch - 1:
+            save_mode_path = os.path.join(snapshot_path, 'epoch_' + str(epoch_num) + '.pth')
+            torch.save(model.state_dict(), save_mode_path)
+            logging.info("save model to {}".format(save_mode_path))
 
     writer.close()
 
@@ -166,7 +206,7 @@ if __name__ == '__main__':
                  '--root_path', '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
                  '--list_dir', '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
                  '--seed', '1234',
-                 '--max_epochs', '100',
+                 '--max_epochs', '150',
                  '--task_type', 'cla',
                  '--dataset', 'das1k',
                  '--spectrum_size', '64',

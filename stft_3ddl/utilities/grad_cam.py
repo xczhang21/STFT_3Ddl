@@ -15,7 +15,8 @@ class GradCAM:
         # 注册前向钩子
         self.target_layer.register_forward_hook(self.save_activations)
         # 注册反向钩子
-        self.target_layer.register_backward_hook(self.save_gradients)
+        # self.target_layer.register_backward_hook(self.save_gradients) # 会触发过时警告
+        self.target_layer.register_full_backward_hook(self.save_gradients)
 
     def save_activations(self, module, input, output):
         self.activations = output
@@ -115,14 +116,14 @@ def visualize_cam(cam, image):
         image = image.permute(1, 2, 0).numpy() # 转换为(H, W, C)
     
     # 调整热力图大小
-    cam_resized = cv2.resize(cam, (image.shape[1], image.shape[0])) # (宽，高)
+    cam_resized = cv2.resize(cam, (image.shape[1], image.shape[0]), interpolation=cv2.INTER_LINEAR) # (宽，高)
 
     # 应用颜色映射
     cam_colored = cv2.applyColorMap(np.uint8(255 * cam_resized), cv2.COLORMAP_JET)
     cam_colored = cv2.cvtColor(cam_colored, cv2.COLOR_BGR2RGB)
 
     # 确保 cam_colored 和 image 的形状相同
-    assert cam_colored.shape == image.shape, f"cam_colored.shape:{cam_colored.shape} not equal to image.shape{image.shape}"
+    assert cam_colored.shape[:2] == image.shape[:2], f"cam_colored.shape:{cam_colored.shape} not equal to image.shape{image.shape}"
 
     # 叠加图像
     superimposed_image = np.float32(cam_colored) / 255 + np.float32(image) / 255
@@ -138,9 +139,9 @@ if __name__ == '__main__':
     class SimpleCNN(nn.Module):
         def __init__(self):
             super(SimpleCNN, self).__init__()
-            self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
+            self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1)
             self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
-            self.fc = nn.Linear(32 * 128 * 128, 10)
+            self.fc = nn.Linear(32 * 32 * 32, 10)
 
         def forward(self, x):
             x = F.relu(self.conv1(x))
@@ -153,8 +154,8 @@ if __name__ == '__main__':
     model = SimpleCNN()
 
     # 随机输入数据
-    input_tensor = torch.randn(32, 3, 128, 128)
-    target_batch = 31
+    input_tensor = torch.randn(1, 1, 32, 32)
+    target_batch = 0
 
     # 测试 GradCAM
     grad_cam = GradCAM(model, target_layer=model.conv2)
