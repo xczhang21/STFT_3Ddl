@@ -34,5 +34,5 @@ def get_das1k_ssize256_config():
     
     """
     config = _get_das1k_config()
-    config.root_path="/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
+    config.root_path="/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_256"
     return config

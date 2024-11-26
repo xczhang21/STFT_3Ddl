@@ -174,6 +174,7 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
             logging.info("save model to {}".format(save_mode_path))
 
     writer.close()
+    return "Training Finished!"
 
 
 # 文件测试

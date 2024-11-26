@@ -77,6 +77,5 @@ if __name__ == '__main__':
     network.cuda()
 
     trainer = trainer_func(train_config, model=network, snapshot_path=snapshot_path)
-
-    print('test')
+    print(trainer)
     
