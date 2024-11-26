@@ -15,13 +15,12 @@ import numpy as np
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utilities.spectrum2iamge import spectrum2image
 from utilities.grad_cam import GradCAM
 from utilities.grad_cam import visualize_cam
 
 
 
-def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
+def ResNet_trainer_das1k(args, model, snapshot_path):
     from datasets.dataset_das1k import ds1k_dataset, RandomGenerator
 
     transform = transforms.Compose([
@@ -37,17 +36,17 @@ def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
     logging.info(str(args))
 
     base_lr = args.base_lr
-    num_classes = args.num_classes
+    num_classes = args.dataset.num_classes
     batch_size = args.batch_size * args.n_gpu
     db_train = ds1k_dataset(
-        base_dir=args.root_path,
-        list_dir=args.list_dir,
+        base_dir=args.dataset.root_path,
+        list_dir=args.dataset.list_dir,
         split='train',
         transform=transform
     )
     db_val = ds1k_dataset(
-        base_dir=args.root_path,
-        list_dir=args.list_dir,
+        base_dir=args.dataset.root_path,
+        list_dir=args.dataset.list_dir,
         split='test',
         transform=transform
     )
@@ -180,58 +179,89 @@ def ResNet_trainer_das1k_dataset(args, model, snapshot_path):
 # 文件测试
 if __name__ == '__main__':
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    from networks_architecture.resnet_class_configs import get_ResNet50_config
+    from networks_architecture.resnet_class_configs import get_ResNet_config
     from networks_architecture.resnet_class_modeling import ResNet
+    import ml_collections
     import argparse
     
-    parser = argparse.ArgumentParser(description='测试')
+    # parser = argparse.ArgumentParser(description='测试')
 
-    parser.add_argument('--base_lr', type=float)
-    parser.add_argument('--num_classes', type=int)
-    parser.add_argument('--batch_size', type=int)
-    parser.add_argument('--n_gpu', type=int)
-    parser.add_argument('--root_path', type=str)
-    parser.add_argument('--list_dir', type=str)
-    parser.add_argument('--seed', type=int)
-    parser.add_argument('--max_epochs', type=int)
-    parser.add_argument('--task_type', type=str)
-    parser.add_argument('--dataset', type=str)
-    parser.add_argument('--spectrum_size', type=int)
-    parser.add_argument('--net', type=str)
+    # parser.add_argument('--base_lr', type=float)
+    # parser.add_argument('--num_classes', type=int)
+    # parser.add_argument('--batch_size', type=int)
+    # parser.add_argument('--n_gpu', type=int)
+    # parser.add_argument('--root_path', type=str)
+    # parser.add_argument('--list_dir', type=str)
+    # parser.add_argument('--seed', type=int)
+    # parser.add_argument('--max_epochs', type=int)
+    # parser.add_argument('--task_type', type=str)
+    # parser.add_argument('--dataset', type=str)
+    # parser.add_argument('--spectrum_size', type=int)
+    # parser.add_argument('--net', type=str)
 
-    fake_args = ['--base_lr', '0.001',
-                 '--num_classes', '10',
-                 '--batch_size', '32',
-                 '--n_gpu', '1',
-                 '--root_path', '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
-                 '--list_dir', '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
-                 '--seed', '1234',
-                 '--max_epochs', '150',
-                 '--task_type', 'cla',
-                 '--dataset', 'das1k',
-                 '--spectrum_size', '64',
-                 '--net', 'ResNet50']
+    # fake_args = ['--base_lr', '0.001',
+    #              '--num_classes', '10',
+    #              '--batch_size', '32',
+    #              '--n_gpu', '1',
+    #              '--root_path', '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
+    #              '--list_dir', '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
+    #              '--seed', '1234',
+    #              '--max_epochs', '150',
+    #              '--task_type', 'cla',
+    #              '--dataset', 'das1k',
+    #              '--spectrum_size', '64',
+    #              '--net', 'ResNet']
     
-    args = parser.parse_args(fake_args)
+    # args = parser.parse_args(fake_args)
+    
+    config = ml_collections.ConfigDict()
 
-    assert args.task_type == 'cla', f"task_type({args.task_type}) is not cla"
-    dataset_name = args.dataset
-    args.exp = "STFT_3Ddl_" + args.task_type + '_' + dataset_name + str(args.spectrum_size)
+    config.base_lr = 0.01
+    config.batch_size = 32
+    config.dataset = ml_collections.ConfigDict()
+    config.dataset.list_dir = "/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
+    config.dataset.num_channels = 1
+    config.dataset.num_classes = 10
+    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
+    config.dataset_name = "das1k"
+    config.dataset_spectrum_size = 64
+    config.is_pretrain = False
+    config.max_epochs = 150
+    config.n_gpu = 1
+    config.net = ml_collections.ConfigDict()
+    config.net.block = "Bottleneck"
+    config.net.encoder_num = [3, 4, 24, 3]
+    config.net.groups = None
+    config.net.in_channels = 1
+    config.net.norm_layer = None
+    config.net.num_classes = 10
+    config.net.replace_stride_with_dilation = None
+    config.net.width_per_group = None
+    config.net.zero_init_residual = None
+    config.net_name = "ResNet"
+    config.seed = 1234
+    config.task_type = "cla"
 
-    snapshot_path = "../model/{}".format(args.exp)
+
+
+    assert config.task_type == 'cla', f"task_type({config.task_type}) is not cla"
+    dataset_name = config.dataset_name
+    config.exp = "STFT_3Ddl_" + config.task_type + '_' + dataset_name + str(config.dataset_spectrum_size)
+
+    snapshot_path = "../model/{}".format(config.exp)
     snapshot_path = snapshot_path + '_traniner_test'
-    snapshot_path = snapshot_path + '_' + args.net
-    snapshot_path = snapshot_path + '_epo' + str(args.max_epochs)
-    snapshot_path = snapshot_path + '_bs' + str(args.batch_size)
-    snapshot_path = snapshot_path + '_lr' + str(args.base_lr)
-    snapshot_path = snapshot_path + '_ssize' + str(args.spectrum_size)
+    snapshot_path = snapshot_path + '_' + config.net_name
+    snapshot_path = snapshot_path + '_epo' + str(config.max_epochs)
+    snapshot_path = snapshot_path + '_bs' + str(config.batch_size)
+    snapshot_path = snapshot_path + '_lr' + str(config.base_lr)
+    snapshot_path = snapshot_path + '_ssize' + str(config.dataset_spectrum_size)
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
-    config_net = get_ResNet50_config()
-    network = ResNet(config=config_net)
+    config_net = get_ResNet_config()
+    network = ResNet(config=config.net)
     network = network.cuda()
 
-    trainer = ResNet_trainer_das1k_dataset(args=args, model=network, snapshot_path=snapshot_path)
+    trainer = ResNet_trainer_das1k(args=config, model=network, snapshot_path=snapshot_path)
     

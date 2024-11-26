@@ -130,7 +130,7 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
         # 下面是自己加的config
         block = globals()[config.block]
-        layers = config.encoder_channels
+        layers = config.encoder_num
         num_classes = config.num_classes
         zero_init_residual = False if config.zero_init_residual==None else config.zero_init_residual
         groups = 1 if config.groups==None else config.groups
