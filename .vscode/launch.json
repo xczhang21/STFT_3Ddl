@@ -5,6 +5,98 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python 调试程序: 当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "pi_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "ss64_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "pi_ss128_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "ss128_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "intensity_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "ss64_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
+            "name": "intensity_ss128_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "ss128_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
+            "name": "intensity_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "ss256_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
             "name": "ss64_train",
             "type": "debugpy",
             "request": "launch",
@@ -12,7 +104,8 @@
             "console": "integratedTerminal",
             // "justMyCode": false,
             "args": [
-                "--train_config", "ss64_train",
+                "--train_config",
+                "ss64_train",
             ]
         },
         {
@@ -23,7 +116,8 @@
             "console": "integratedTerminal",
             // "justMyCode": false,
             "args": [
-                "--train_config", "ss128_train",
+                "--train_config",
+                "ss128_train",
             ]
         },
         {
@@ -34,7 +128,8 @@
             "console": "integratedTerminal",
             // "justMyCode": false,
             "args": [
-                "--train_config", "ss256_train",
+                "--train_config",
+                "ss256_train",
             ]
         }
     ]

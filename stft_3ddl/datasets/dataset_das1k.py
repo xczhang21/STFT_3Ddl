@@ -1,14 +1,26 @@
+"""
+该文件用于处理DAS1K数据集的：
+phase(64, 64)、phase(128, 128)、phase(256, 256)
+intensity(64, 64)、intensity(128, 128)、intensity(256, 256)
+phase+intensity(2, 64, 64)、phase+intensity(2, 128, 128)、phase+intensity(2, 256, 256)
+"""
 import os
 import random
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from pathlib import Path
+
 
 
 class RandomGenerator(object):
     @classmethod
     def divisive_crop(self, spectrum):
         spectrum_array = torch.from_numpy(spectrum.astype(np.float32))
+        shape_len = len(spectrum_array.shape)
+        assert shape_len == 2 or shape_len == 3, f"len(spectrum_array.shape):{shape_len} not equal 2 or 3"
+        if shape_len == 2:    
+            spectrum_array = spectrum_array.unsqueeze(0)
         return spectrum_array
     
     @classmethod
@@ -21,7 +33,6 @@ class RandomGenerator(object):
     def __call__(self, sample):
         spectrum, label = sample['spectrum'], sample['label']
         spectrum_array = self.divisive_crop(spectrum)
-        spectrum_array = spectrum_array.unsqueeze(0)
         label_array = self.label_convert(label)
         sample = {'id':sample['id'], 'spectrum':spectrum_array, 'label':label_array}
         return sample
@@ -75,7 +86,6 @@ class ds1k_dataset(Dataset):
         self.data_dir = base_dir
         self.max_num_samples = max_num_samples
         self.datas = dataset_reader(self.data_dir, self.sample_list, self.max_num_samples, self.split)
-
     def __len__(self):
         return len(self.datas)
     
@@ -95,4 +105,17 @@ if __name__ == '__main__':
     list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
     train_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
     test_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
+    print(train_datasets[0]['spectrum'].shape)
+
+    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/intensity/matrixs/scale_64'
+    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/intensity'
+    train_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
+    test_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
+    print(train_datasets[0]['spectrum'].shape)
+    
+    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/pi/matrixs/scale_64'
+    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/pi'
+    train_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
+    test_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
+    print(train_datasets[0]['spectrum'].shape)
     

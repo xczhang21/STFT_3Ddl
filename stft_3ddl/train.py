@@ -16,6 +16,8 @@ from utilities.utils import recursive_find_python_class
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_config', type=str,
                     default='test_train', help='train配置文件在train_config.py中')
+parser.add_argument('--prepro_method', type=str,
+                    default=None, help='数据预处理方法，默认为空')
 parser.add_argument('--deterministic', type=int, default=1,
                     help='whether use deterministic training')
 args = parser.parse_args()
@@ -33,10 +35,14 @@ if __name__ == '__main__':
         cudnn.deterministic = True
 
     # 判断train_config是否存在且可调用
-    assert hasattr(train_configs, f"get_{args.train_config}"), f"Config 'get_{args.train_config}' does not exist in the train_config."
-    assert callable(getattr(train_configs, f"get_{args.train_config}")), f"get_'{args.train_config}' is not callable."
+    if args.prepro_method == None:
+        train_config_name = f"{args.train_config}"
+    else:
+        train_config_name = f"{args.prepro_method}_{args.train_config}"
+    assert hasattr(train_configs, f"get_{train_config_name}"), f"Config 'get_{train_config_name}' does not exist in the train_config."
+    assert callable(getattr(train_configs, f"get_{train_config_name}")), f"get_{train_config_name} is not callable."
 
-    train_config = getattr(train_configs, f"get_{args.train_config}")()
+    train_config = getattr(train_configs, f"get_{train_config_name}")()
 
     random.seed(train_config.seed)
     np.random.seed(train_config.seed)
@@ -51,7 +57,7 @@ if __name__ == '__main__':
 
     exp = 'STFT_3Ddl_' + train_config.dataset_name
     
-    snapshot_path = "../model/{}/{}/".format(exp, args.train_config)
+    snapshot_path = "../model/{}/{}/".format(exp, train_config_name)
     snapshot_path = snapshot_path + train_config.net_name
     snapshot_path = snapshot_path + '_pretrain' if train_config.is_pretrain else snapshot_path
     snapshot_path = snapshot_path + '_epo' + str(train_config.max_epochs)

@@ -119,7 +119,6 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
             for val_data in db_val.datas:
                 spectrum = RandomGenerator.divisive_crop(val_data['spectrum'])
                 spectrum_id = val_data['id']
-                spectrum = spectrum.unsqueeze(0)
                 val_spectrums.append({'spectrum':spectrum, 'id':spectrum_id})
                 spectrum = spectrum.unsqueeze(0)
                 label = RandomGenerator.label_convert(val_data['label'])
@@ -159,7 +158,10 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
             # grad_cam = GradCAM(model, target_layer=model.layer4[-1].conv3)
             # grad_cam = GradCAM(model, target_layer=model.layer3)
             cam = grad_cam.generate_cam(spectrum.unsqueeze(0).cuda(), target_class=None, target_batch=0)
-            superimposed_image = visualize_cam(cam, spectrum)
+            if spectrum.shape[0] == 0:
+                superimposed_image = visualize_cam(cam, spectrum)
+            else:
+                superimposed_image = visualize_cam(cam, spectrum[:1])
             writer.add_image(f'{spectrum_id}/epoch_{epoch_num}', superimposed_image, 1, dataformats='HWC')
         
         save_interval = 50
