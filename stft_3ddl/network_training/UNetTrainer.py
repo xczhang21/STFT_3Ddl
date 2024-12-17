@@ -20,7 +20,7 @@ from utilities.grad_cam import visualize_cam
 
 
 
-def ResNet_trainer_das1k(args, model, snapshot_path):
+def UNet_trainer_das1k(args, model, snapshot_path):
     from datasets.dataset_das1k import ds1k_dataset, RandomGenerator
 
     transform = transforms.Compose([
@@ -154,7 +154,7 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
             spectrum_id = val_spectrums[save_CAM_num]['id']
             spectrum = val_spectrums[save_CAM_num]['spectrum']
 
-            grad_cam = GradCAM(model, target_layer=model.layer4)
+            grad_cam = GradCAM(model, target_layer=model.decoder1)
             # grad_cam = GradCAM(model, target_layer=model.layer4[-1].conv3)
             # grad_cam = GradCAM(model, target_layer=model.layer3)
             cam = grad_cam.generate_cam(spectrum.unsqueeze(0).cuda(), target_class=None, target_batch=0)
@@ -182,8 +182,8 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
 # 文件测试
 if __name__ == '__main__':
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    from networks_architecture.resnet_class_configs import get_ResNet_config
-    from networks_architecture.resnet_class_modeling import ResNet
+    from networks_architecture.unet_class_configs import get_UNet_config
+    from networks_architecture.unet_class_modeling import UNet
     import ml_collections
     import argparse
     
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     config.net.replace_stride_with_dilation = None
     config.net.width_per_group = None
     config.net.zero_init_residual = None
-    config.net_name = "ResNet"
+    config.net_name = "UNet"
     config.seed = 1234
     config.task_type = "cla"
 
@@ -262,8 +262,8 @@ if __name__ == '__main__':
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
-    config_net = get_ResNet_config()
-    network = ResNet(config=config.net)
+    config_net = get_UNet_config()
+    network = UNet(config=config_net)
     network = network.cuda()
 
     trainer = ResNet_trainer_das1k(args=config, model=network, snapshot_path=snapshot_path)

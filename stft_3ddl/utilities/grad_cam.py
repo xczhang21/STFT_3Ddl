@@ -110,6 +110,8 @@ class GradCAM:
 
 # 可视化热力图
 def visualize_cam(cam, image):
+    # 将cam上下颠倒，因为生成的CAM图上下是错位的
+    cam = np.flipud(cam)
 
     # 如果 image 是 Pytorch 张量，调整为numpy格式
     if isinstance(image, torch.Tensor):

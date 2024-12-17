@@ -11,6 +11,7 @@ import sys
 import train_configs as train_configs
 import datasets.datasets_config as datasets_config
 from utilities.utils import recursive_find_python_class
+from utilities.utils import get_next_time_number
 
 
 parser = argparse.ArgumentParser()
@@ -18,6 +19,8 @@ parser.add_argument('--train_config', type=str,
                     default='test_train', help='train配置文件在train_config.py中')
 parser.add_argument('--prepro_method', type=str,
                     default=None, help='数据预处理方法，默认为空')
+parser.add_argument('--times', type=str,
+                    default=None, help="trainin times")
 parser.add_argument('--deterministic', type=int, default=1,
                     help='whether use deterministic training')
 args = parser.parse_args()
@@ -55,6 +58,7 @@ if __name__ == '__main__':
 
     assert train_config.task_type == 'cla', f"Task_type {train_config.task_type} is not 'cla'"
 
+
     exp = 'STFT_3Ddl_' + train_config.dataset_name
     
     snapshot_path = "../model/{}/{}/".format(exp, train_config_name)
@@ -64,6 +68,13 @@ if __name__ == '__main__':
     snapshot_path = snapshot_path + '_bs' + str(train_config.batch_size)
     snapshot_path = snapshot_path + '_lr' + str(train_config.base_lr)
     snapshot_path = snapshot_path + '_ssize' + str(train_config.dataset_spectrum_size)
+
+    snapshot_path_parent = snapshot_path
+
+    if args.times == None:
+        args.times = str(get_next_time_number(snapshot_path_parent))
+
+    snapshot_path = snapshot_path + "/{}/".format(args.times)
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
@@ -83,5 +94,6 @@ if __name__ == '__main__':
     network.cuda()
 
     trainer = trainer_func(train_config, model=network, snapshot_path=snapshot_path)
-    print(trainer)
+    with open("{}/results.txt".format(snapshot_path_parent), 'a') as file:
+        file.write(f"times:{args.times}\t {trainer}\n")
     

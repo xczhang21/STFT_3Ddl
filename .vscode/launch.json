@@ -13,6 +13,126 @@
             "justMyCode": true
         },
         {
+            "name": "unet_pi_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss64_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "unet_pi_ss128_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss128_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "unet_pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "unet_intensity_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss64_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
+            "name": "unet_intensity_ss128_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss128_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
+            "name": "unet_intensity_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss256_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
+            "name": "unet_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss64_train",
+            ]
+        },
+        {
+            "name": "unet_ss128_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss128_train",
+            ]
+        },
+        {
+            "name": "unet_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "justMyCode": false,
+            "args": [
+                "--train_config",
+                "unet_ss256_train",
+            ]
+        },
+        {
             "name": "pi_ss64_train",
             "type": "debugpy",
             "request": "launch",
