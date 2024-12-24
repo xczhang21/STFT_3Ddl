@@ -25,13 +25,21 @@ class GradCAM:
         self.gradients = grad_output[0]
 
     def generate_cam(self, input_tensor, target_class=None, target_batch=0):
-        # 判断目标batch是否超过batch size
-        assert target_batch < input_tensor.shape[0], f"target_batch:{target_batch} exceeds the range of th batch:{input_tensor.shape[0]}"
+        # 为多输入模型改cam
+        if isinstance(input_tensor, list):
+            for i in range(len(input_tensor)):
+                # 判断目标batch是否超过batch size
+                assert target_batch < input_tensor[i].shape[0], f"target_batch:{target_batch} exceeds the range of th batch:{input_tensor.shape[0]}"
+            # 前向传播
+            output = self.model(input_tensor[0], input_tensor[1], input_tensor[2])
+        
+        else:                   
+            # 判断目标batch是否超过batch size
+            assert target_batch < input_tensor.shape[0], f"target_batch:{target_batch} exceeds the range of th batch:{input_tensor.shape[0]}"
+            # 前向传播
+            output = self.model(input_tensor)
 
-        # 前向传播
-        output = self.model(input_tensor)
-
-        batch_size = input_tensor.size(0) # 获取批次大小
+        # batch_size = input_tensor.size(0) # 获取批次大小
 
         # 如果未制定 target_class, 则默认使用最高分的类别
         if target_class is None:

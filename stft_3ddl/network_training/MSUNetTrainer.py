@@ -20,8 +20,8 @@ from utilities.grad_cam import visualize_cam
 
 
 
-def UNet_trainer_das1k(args, model, snapshot_path):
-    from datasets.dataset_das1k import ds1k_dataset, RandomGenerator
+def MSUNet_trainer_das1k(args, model, snapshot_path):
+    from datasets.dataset_msdas1k import msds1k_dataset, RandomGenerator
 
     transform = transforms.Compose([
         RandomGenerator()
@@ -38,13 +38,13 @@ def UNet_trainer_das1k(args, model, snapshot_path):
     base_lr = args.base_lr
     num_classes = args.dataset.num_classes
     batch_size = args.batch_size * args.n_gpu
-    db_train = ds1k_dataset(
+    db_train = msds1k_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='train',
         transform=transform
     )
-    db_val = ds1k_dataset(
+    db_val = msds1k_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='test',
@@ -83,10 +83,11 @@ def UNet_trainer_das1k(args, model, snapshot_path):
         val_total = 0
         for step, sampled_batch in enumerate(trainloader):
             model.train()
-            spectrum_batch, label_batch = sampled_batch['spectrum'], sampled_batch['label']
-            spectrum_batch, label_batch = spectrum_batch.cuda(), label_batch.long().cuda()
+            spectrums_batch, label_batch = sampled_batch['spectrums'], sampled_batch['label']
+            spectrums_batch = [spectrum_batch.cuda() for spectrum_batch in spectrums_batch]
+            label_batch = label_batch.long().cuda()
             # 前向传播
-            outputs = model(spectrum_batch)
+            outputs = model(spectrums_batch[0], spectrums_batch[1], spectrums_batch[2])
             loss = ce_loss(outputs, label_batch)
 
             # 反向传播与优化
@@ -117,14 +118,15 @@ def UNet_trainer_das1k(args, model, snapshot_path):
             val_labels = torch.Tensor().cuda()
             val_outputs = torch.Tensor().cuda()
             for val_data in db_val.datas:
-                spectrum = RandomGenerator.divisive_crop(val_data['spectrum'])
+                spectrums = RandomGenerator.divisive_crop(val_data['spectrums'])
                 spectrum_id = val_data['id']
-                val_spectrums.append({'spectrum':spectrum, 'id':spectrum_id})
-                spectrum = spectrum.unsqueeze(0)
+                val_spectrums.append({'spectrums':spectrums, 'id':spectrum_id})
+                spectrums = [spectrum.unsqueeze(0) for spectrum in spectrums]
                 label = RandomGenerator.label_convert(val_data['label'])
                 label = label.unsqueeze(0)
-                spectrum, label = spectrum.cuda(), label.cuda()
-                output = model(spectrum)
+                spectrums = [spectrum.cuda() for spectrum in spectrums]
+                label = label.cuda()
+                output = model(spectrums[0], spectrums[1], spectrums[2])
                 val_labels = torch.cat((val_labels, label))
                 val_outputs = torch.cat((val_outputs, output))
 
@@ -146,18 +148,19 @@ def UNet_trainer_das1k(args, model, snapshot_path):
         save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
         if epoch_num == 0:
             spectrum_id = val_spectrums[save_CAM_num]['id']
-            spectrum = val_spectrums[save_CAM_num]['spectrum']
+            spectrum = val_spectrums[save_CAM_num]['spectrums'][0]
             writer.add_image(f'{spectrum_id}', torch.flip(spectrum, dims=[1]), 0, dataformats='CHW')
 
         if (epoch_num + 1) % save_CAM_interval == 0:
             # 每20次迭代，保存一次spectrum 图和 grad_CAM图
             spectrum_id = val_spectrums[save_CAM_num]['id']
-            spectrum = val_spectrums[save_CAM_num]['spectrum']
+            spectrums = val_spectrums[save_CAM_num]['spectrums']
 
             grad_cam = GradCAM(model, target_layer=model.decoder1)
             # grad_cam = GradCAM(model, target_layer=model.layer4[-1].conv3)
             # grad_cam = GradCAM(model, target_layer=model.layer3)
-            cam = grad_cam.generate_cam(spectrum.unsqueeze(0).cuda(), target_class=None, target_batch=0)
+            
+            cam = grad_cam.generate_cam([spectrum.unsqueeze(0).cuda() for spectrum in spectrums], target_class=None, target_batch=0)
             if spectrum.shape[0] == 0:
                 superimposed_image = visualize_cam(cam, spectrum)
             else:
@@ -182,8 +185,8 @@ def UNet_trainer_das1k(args, model, snapshot_path):
 # 文件测试
 if __name__ == '__main__':
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    from networks_architecture.unet_class_configs import get_UNet_config
-    from networks_architecture.unet_class_modeling import UNet
+    from networks_architecture.mulit_scale_unet_class_configs import get_MSUNet_config
+    from networks_architecture.mulit_scale_unet_class_modeling import MSUNet
     import ml_collections
     import argparse
     
@@ -225,34 +228,33 @@ if __name__ == '__main__':
     config.dataset.list_dir = "/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
     config.dataset.num_channels = 1
     config.dataset.num_classes = 10
-    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
-    config.dataset_name = "das1k"
-    config.dataset_spectrum_size = 64
+    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs"
+    config.dataset_name = "msdas1k"
+    config.dataset_spectrum_size = 'ms'
     config.is_pretrain = False
     config.max_epochs = 150
     config.n_gpu = 1
     config.net = ml_collections.ConfigDict()
-    config.net.block = "Bottleneck"
-    config.net.encoder_num = [3, 4, 24, 3]
-    config.net.groups = None
+    # config.net.block = "Bottleneck"
+    # config.net.encoder_num = [3, 4, 24, 3]
+    # config.net.groups = None
     config.net.in_channels = 1
-    config.net.norm_layer = None
+    # config.net.norm_layer = None
     config.net.num_classes = 10
-    config.net.replace_stride_with_dilation = None
-    config.net.width_per_group = None
-    config.net.zero_init_residual = None
-    config.net_name = "UNet"
+    # config.net.replace_stride_with_dilation = None
+    # config.net.width_per_group = None
+    # config.net.zero_init_residual = None
+    config.net_name = "MSUNet"
     config.seed = 1234
     config.task_type = "cla"
 
 
-
     assert config.task_type == 'cla', f"task_type({config.task_type}) is not cla"
     dataset_name = config.dataset_name
-    config.exp = "STFT_3Ddl_" + config.task_type + '_' + dataset_name + str(config.dataset_spectrum_size)
+    exp = 'STFT_3Ddl_' + config.dataset_name + '_test'
 
-    snapshot_path = "../model/{}".format(config.exp)
-    snapshot_path = snapshot_path + '_traniner_test'
+    snapshot_path = "../model/{}/".format(exp)
+    snapshot_path = snapshot_path + 'traniner_test'
     snapshot_path = snapshot_path + '_' + config.net_name
     snapshot_path = snapshot_path + '_epo' + str(config.max_epochs)
     snapshot_path = snapshot_path + '_bs' + str(config.batch_size)
@@ -262,9 +264,9 @@ if __name__ == '__main__':
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
-    config_net = get_UNet_config()
-    network = UNet(config=config_net)
+    config_net = get_MSUNet_config()
+    network = MSUNet(config=config_net)
     network = network.cuda()
 
-    trainer = UNet_trainer_das1k(args=config, model=network, snapshot_path=snapshot_path)
+    trainer = MSUNet_trainer_das1k(args=config, model=network, snapshot_path=snapshot_path)
     
