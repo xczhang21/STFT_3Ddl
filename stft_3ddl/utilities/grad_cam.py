@@ -31,7 +31,12 @@ class GradCAM:
                 # 判断目标batch是否超过batch size
                 assert target_batch < input_tensor[i].shape[0], f"target_batch:{target_batch} exceeds the range of th batch:{input_tensor.shape[0]}"
             # 前向传播
-            output = self.model(input_tensor[0], input_tensor[1], input_tensor[2])
+                output = self.model(*input_tensor)
+            # if len(input_tensor) == 3:
+            #     output = self.model(input_tensor[0], input_tensor[1], input_tensor[2])
+            # elif len(input_tensor) == 2:
+            #     output = self.model(input_tensor[0], input_tensor[1])
+
         
         else:                   
             # 判断目标batch是否超过batch size

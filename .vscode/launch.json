@@ -144,6 +144,8 @@
                 "ss64_train",
                 "--prepro_method",
                 "pi",
+                "--times",
+                "test"
             ]
         },
         {

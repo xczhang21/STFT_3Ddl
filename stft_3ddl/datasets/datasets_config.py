@@ -1,6 +1,21 @@
 import ml_collections
 from pathlib import Path
 
+def _get_mfdask1k_config():
+    """
+    待MFUNetTrainer.py测试结果
+    """
+    config = ml_collections.ConfigDict()
+    return config
+
+
+def _get_msdas1k_config():
+    """
+    mulit scale 方法在MSUNetTrainer.py中的测试阶段就证明效果不好，故没有继续编写datasets_config
+    """
+    config = ml_collections.ConfigDict()
+    return config
+
 def _get_das1k_config():
     config = ml_collections.ConfigDict()
     config.num_channels=1
