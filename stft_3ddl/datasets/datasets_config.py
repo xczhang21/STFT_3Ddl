@@ -5,9 +5,9 @@ def _get_das1k_gaf_config():
     config = ml_collections.ConfigDict()
     config.num_channels=1
     config.num_classes=10
-    config.root_path=str(Path("/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_GAF"))
+    config.root_path=str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_GAF"))
     # 数据集train和test拆分沿用STFT的
-    config.list_dir=str(Path("/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
+    config.list_dir=str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
     # class_names 用于生成混淆矩阵图
     config.class_names = ['carhorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
                           'rain', 'shoveling', 'thunderstorm', 'welding']
@@ -24,8 +24,8 @@ def _get_mfdas1k_config():
     config = ml_collections.ConfigDict()
     config.num_channels = 1
     config.num_classes = 10
-    config.root_path = str(Path("/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
-    config.list_dir = str(Path("/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
     # class_names 用于生成混淆矩阵图
     config.class_names = ['carhorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
                           'rain', 'shoveling', 'thunderstorm', 'welding']
@@ -42,8 +42,8 @@ def _get_msdas1k_config():
     config = ml_collections.ConfigDict()
     config.num_channels = 1
     config.num_classes = 10
-    config.root_path = str(Path("/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
-    config.list_dir = str(Path("/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
     # class_names 用于生成混淆矩阵图
     config.class_names = ['carhorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
                           'rain', 'shoveling', 'thunderstorm', 'welding']
@@ -54,8 +54,8 @@ def _get_das1k_config():
     config = ml_collections.ConfigDict()
     config.num_channels=1
     config.num_classes=10
-    config.root_path=str(Path("/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
-    config.list_dir=str(Path("/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
+    config.root_path=str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
+    config.list_dir=str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
     # class_names 用于生成混淆矩阵图
     config.class_names = ['carhorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
                           'rain', 'shoveling', 'thunderstorm', 'welding']

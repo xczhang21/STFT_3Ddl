@@ -52,7 +52,7 @@ def get_iterfile_names(directory_path):
 
 def read_raw_signal_file(dataset_path, class_name, iterfile_name):
     iterfile_path = Path(dataset_path) / class_name / f"{iterfile_name}.mat"
-    # mat = loadmat('/home/zhang03/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/CARHORN/carhorn1.mat')
+    # mat = loadmat('/home/zhang/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/CARHORN/carhorn1.mat')
     mat = loadmat(str(iterfile_path))
     phase = mat[iterfile_name][0]
     intensity = mat[iterfile_name][1]
@@ -97,7 +97,7 @@ def temp_check_get_nperseg_noverlap(signal_data, fs, window, nperseg, noverlap, 
         noverlap = noverlap - 1
         flag = True
         return nperseg, noverlap, crop, flag, added_flag
-dataset_path = Path('/home/zhang03/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/')
+dataset_path = Path('/home/zhang/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/')
 
 def get_spectrum_corp(signal_data, fs, window, nperseg, noverlap, lfaxis, ltaxis, crop):
     faxis, taxis, spectrum = signal.stft(signal_data, fs, window, nperseg, noverlap, boundary=None, padded=True)
@@ -157,7 +157,7 @@ for class_name in class_names:
 
 # 数据生成完成，下面的内容注释
 # for data in tqdm(datas, desc="数据处理进度"):
-#     save_path = Path(f'/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/')
+#     save_path = Path(f'/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/')
     
 #     faxis, taxis, spectrum = get_spectrum_corp(data['signal_data'], fs=fs, window=window,
 #                                                nperseg=data['nperseg'], noverlap=data['noverlap'],
@@ -173,7 +173,7 @@ for class_name in class_names:
 # 注释结束
 
 
-list_save_path = Path("/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase/")
+list_save_path = Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase/")
 
 class_id = {
     'CARHORN':0,

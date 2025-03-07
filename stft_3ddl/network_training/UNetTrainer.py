@@ -204,8 +204,8 @@ if __name__ == '__main__':
     #              '--num_classes', '10',
     #              '--batch_size', '32',
     #              '--n_gpu', '1',
-    #              '--root_path', '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
-    #              '--list_dir', '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
+    #              '--root_path', '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
+    #              '--list_dir', '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
     #              '--seed', '1234',
     #              '--max_epochs', '150',
     #              '--task_type', 'cla',
@@ -220,10 +220,10 @@ if __name__ == '__main__':
     config.base_lr = 0.01
     config.batch_size = 32
     config.dataset = ml_collections.ConfigDict()
-    config.dataset.list_dir = "/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
+    config.dataset.list_dir = "/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
     config.dataset.num_channels = 1
     config.dataset.num_classes = 10
-    config.dataset.root_path = "/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
+    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
     config.dataset.class_names = ['cathorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
                           'rain', 'shoveling', 'thunderstorm', 'welding']
     # config.dataset.class_names = ['汽车喇叭', '钻孔', '脚步声', '手锤', '手锯', '电镐',

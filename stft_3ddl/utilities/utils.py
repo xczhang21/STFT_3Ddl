@@ -46,4 +46,4 @@ def get_next_time_number(snapshot_path_parent):
 
 # 测试
 if __name__ == '__main__':
-    print(get_next_time_number("/home/zhang03/zxc/STFT_3DDL/model/STFT_3Ddl_das1k/pi_unet_ss64_train"))
+    print(get_next_time_number("/home/zhang/zxc/STFT_3DDL/model/STFT_3Ddl_das1k/pi_unet_ss64_train"))

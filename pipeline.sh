@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /home/zhang03/anaconda3/etc/profile.d/conda.sh
+source /home/zhang/anaconda3/etc/profile.d/conda.sh
 conda activate zxc_das
 
 # 配置参数列表

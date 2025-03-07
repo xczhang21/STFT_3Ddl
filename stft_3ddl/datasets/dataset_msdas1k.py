@@ -98,7 +98,7 @@ class msdas1k_dataset(Dataset):
 
 # 模块测试
 if __name__ == '__main__':
-    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs'
-    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
+    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs'
+    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
     train_datasets = msdas1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
     test_datasets = msdas1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')

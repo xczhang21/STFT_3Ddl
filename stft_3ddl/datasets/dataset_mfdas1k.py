@@ -97,8 +97,8 @@ class mfdas1k_dataset(Dataset):
 
 # 模块测试
 if __name__ == '__main__':
-    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/'
+    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/'
     spectrum_size = 64
-    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
+    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
     train_datasets = mfdas1k_dataset(base_dir=base_dir, pectrum_size=spectrum_size, list_dir=list_dir, split='train')
     test_datasets = mfdas1k_dataset(base_dir=base_dir, pectrum_size=spectrum_size, list_dir=list_dir, split='test')

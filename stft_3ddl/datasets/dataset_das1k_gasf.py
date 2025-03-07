@@ -95,8 +95,8 @@ class das1k_gasf_dataset(Dataset):
 
 # 模块测试
 if __name__ == '__main__':
-    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_GAF/phase/scale_64'
-    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
+    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_GAF/phase/scale_64'
+    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
     train_datasets = das1k_gasf_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
     test_datasets = das1k_gasf_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
     print(train_datasets[0]['image'].shape)
