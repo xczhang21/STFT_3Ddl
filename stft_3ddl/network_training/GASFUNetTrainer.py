@@ -16,15 +16,15 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utilities.grad_cam import GradCAM
-from utilities.grad_cam import visualize_cam_multi
-from utilities.grad_cam import save_grad_cam_multi
+from utilities.grad_cam import visualize_cam
+from utilities.grad_cam import save_grad_cam
 
 from utilities.confusion_matrix import  save_confusion_matrix
 
 from utilities.pred_details import save_pred_details
 
-def MSUNet_trainer_msdas1k(args, model, snapshot_path):
-    from datasets.dataset_msdas1k import msdas1k_dataset, RandomGenerator
+def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
+    from datasets.dataset_das1k_gasf import das1k_gasf_dataset, RandomGenerator
 
     transform = transforms.Compose([
         RandomGenerator()
@@ -41,13 +41,13 @@ def MSUNet_trainer_msdas1k(args, model, snapshot_path):
     base_lr = args.base_lr
     num_classes = args.dataset.num_classes
     batch_size = args.batch_size * args.n_gpu
-    db_train = msdas1k_dataset(
+    db_train = das1k_gasf_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='train',
         transform=transform
     )
-    db_val = msdas1k_dataset(
+    db_val = das1k_gasf_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='test',
@@ -87,11 +87,10 @@ def MSUNet_trainer_msdas1k(args, model, snapshot_path):
         val_total = 0
         for step, sampled_batch in enumerate(trainloader):
             model.train()
-            spectrums_batch, label_batch = sampled_batch['spectrums'], sampled_batch['label']
-            spectrums_batch = [spectrum_batch.cuda() for spectrum_batch in spectrums_batch]
-            label_batch = label_batch.long().cuda()
+            image_batch, label_batch = sampled_batch['image'], sampled_batch['label']
+            image_batch, label_batch = image_batch.cuda(), label_batch.long().cuda()
             # 前向传播
-            outputs = model(spectrums_batch[0], spectrums_batch[1], spectrums_batch[2])
+            outputs = model(image_batch)
             loss = ce_loss(outputs, label_batch)
 
             # 反向传播与优化
@@ -118,19 +117,18 @@ def MSUNet_trainer_msdas1k(args, model, snapshot_path):
 
         model.eval()
         with torch.no_grad():
-            val_spectrums = []
+            val_images = []
             val_labels = torch.Tensor().cuda()
             val_outputs = torch.Tensor().cuda()
             for val_data in db_val.datas:
-                spectrums = RandomGenerator.divisive_crop(val_data['spectrums'])
-                spectrum_id = val_data['id']
-                val_spectrums.append({'spectrums':spectrums, 'id':spectrum_id})
-                spectrums = [spectrum.unsqueeze(0) for spectrum in spectrums]
+                image = RandomGenerator.divisive_crop(val_data['image'])
+                image_id = val_data['id']
+                val_images.append({'image':image, 'id':image_id})
+                image = image.unsqueeze(0)
                 label = RandomGenerator.label_convert(val_data['label'])
                 label = label.unsqueeze(0)
-                spectrums = [spectrum.cuda() for spectrum in spectrums]
-                label = label.cuda()
-                output = model(spectrums[0], spectrums[1], spectrums[2])
+                image, label = image.cuda(), label.cuda()
+                output = model(image)
                 val_labels = torch.cat((val_labels, label))
                 val_outputs = torch.cat((val_outputs, output))
 
@@ -155,12 +153,9 @@ def MSUNet_trainer_msdas1k(args, model, snapshot_path):
             
         # 保存CAM      
         save_CAM_interval = 5 # grad_CAM生成周期
-        # save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
-        save_CAM_num = None # 对val_spectrums的多有特征进行grad_CAM
-        # save_grad_cam(epoch_num, val_spectrums, model, model.decoder1, writer, save_CAM_interval, save_CAM_num)
-        # 因为MSUNet是多输入结构，所以修改save_grad_cam为save_grad_cam_multi以适应MSUNet
-        save_grad_cam_multi(epoch_num, val_spectrums, model, [model.encoder1_1, model.encoder2_1, model.encoder3_1, model.decoder1], writer, save_CAM_interval, save_CAM_num, single_image=True)
-
+        # save_CAM_num = 0 # 对val_images的第几张进行grad_CAM
+        save_CAM_num = None # 对val_images的多有特征进行grad_CAM
+        save_grad_cam(epoch_num, val_images, model, model.decoder1, writer, save_CAM_interval, save_CAM_num)
         
         # 保存预测详情
         if epoch_num == max_epoch-1:
@@ -185,90 +180,53 @@ def MSUNet_trainer_msdas1k(args, model, snapshot_path):
 # 文件测试
 if __name__ == '__main__':
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    from networks_architecture.mulit_scale_unet_class_configs import get_MSUNet_config
-    from networks_architecture.mulit_scale_unet_class_modeling import MSUNet
+    from networks_architecture.unet_class_configs import get_UNet_config
+    from networks_architecture.unet_class_modeling import UNet
     import ml_collections
     import argparse
-    
-    # parser = argparse.ArgumentParser(description='测试')
+    from datasets.datasets_config import get_das1k_gasf_phase_ssize64_config
 
-    # parser.add_argument('--base_lr', type=float)
-    # parser.add_argument('--num_classes', type=int)
-    # parser.add_argument('--batch_size', type=int)
-    # parser.add_argument('--n_gpu', type=int)
-    # parser.add_argument('--root_path', type=str)
-    # parser.add_argument('--list_dir', type=str)
-    # parser.add_argument('--seed', type=int)
-    # parser.add_argument('--max_epochs', type=int)
-    # parser.add_argument('--task_type', type=str)
-    # parser.add_argument('--dataset', type=str)
-    # parser.add_argument('--spectrum_size', type=int)
-    # parser.add_argument('--net', type=str)
-
-    # fake_args = ['--base_lr', '0.001',
-    #              '--num_classes', '10',
-    #              '--batch_size', '32',
-    #              '--n_gpu', '1',
-    #              '--root_path', '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
-    #              '--list_dir', '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
-    #              '--seed', '1234',
-    #              '--max_epochs', '150',
-    #              '--task_type', 'cla',
-    #              '--dataset', 'das1k',
-    #              '--spectrum_size', '64',
-    #              '--net', 'ResNet']
-    
-    # args = parser.parse_args(fake_args)
-    
     config = ml_collections.ConfigDict()
 
     config.base_lr = 0.01
     config.batch_size = 32
-    config.dataset = ml_collections.ConfigDict()
-    config.dataset.list_dir = "/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
-    config.dataset.num_channels = 1
-    config.dataset.num_classes = 10
-    config.dataset.root_path = "/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs"
-    config.dataset.class_names = ['cathorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
-                          'rain', 'shoveling', 'thunderstorm', 'welding']
-    config.dataset_name = "msdas1k"
-    config.dataset_spectrum_size = 'ms'
+    config.dataset = get_das1k_gasf_phase_ssize64_config()
+    config.dataset_name = 'das1k_gasf'
+    config.scale = 64
     config.is_pretrain = False
     config.max_epochs = 150
     config.n_gpu = 1
     config.net = ml_collections.ConfigDict()
-    # config.net.block = "Bottleneck"
-    # config.net.encoder_num = [3, 4, 24, 3]
-    # config.net.groups = None
+    config.net.block = "Bottleneck"
+    config.net.encoder_num = [3, 4, 24, 3]
+    config.net.groups = None
     config.net.in_channels = 1
-    # config.net.norm_layer = None
+    config.net.norm_layer = None
     config.net.num_classes = 10
-    # config.net.replace_stride_with_dilation = None
-    # config.net.width_per_group = None
-    # config.net.zero_init_residual = None
-    config.net_name = "MSUNet"
+    config.net.replace_stride_with_dilation = None
+    config.net.width_per_group = None
+    config.net.zero_init_residual = None
+    config.net_name = "UNet"
     config.seed = 1234
     config.task_type = "cla"
-
-
+    
     assert config.task_type == 'cla', f"task_type({config.task_type}) is not cla"
     dataset_name = config.dataset_name
-    exp = 'STFT_3Ddl_' + config.dataset_name + '_test'
+    config.exp = "STFT_3Ddl_" + config.task_type + '_' + dataset_name + str(config.scale)
 
-    snapshot_path = "../model/{}/".format(exp)
-    snapshot_path = snapshot_path + 'traniner_test'
+    snapshot_path = "../model/{}".format(config.exp)
+    snapshot_path = snapshot_path + '_traniner_test'
     snapshot_path = snapshot_path + '_' + config.net_name
     snapshot_path = snapshot_path + '_epo' + str(config.max_epochs)
     snapshot_path = snapshot_path + '_bs' + str(config.batch_size)
     snapshot_path = snapshot_path + '_lr' + str(config.base_lr)
-    snapshot_path = snapshot_path + '_ssize' + str(config.dataset_spectrum_size)
+    snapshot_path = snapshot_path + '_ssize' + str(config.scale)
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
-    config_net = get_MSUNet_config()
-    network = MSUNet(config=config_net)
+    config_net = get_UNet_config()
+    network = UNet(config=config_net)
     network = network.cuda()
 
-    trainer = MSUNet_trainer_msdas1k(args=config, model=network, snapshot_path=snapshot_path)
-    
+    trainer = GASFUNet_trainer_das1k_gasf(args=config, model=network, snapshot_path=snapshot_path)

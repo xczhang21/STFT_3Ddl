@@ -21,7 +21,7 @@ parser.add_argument('--prepro_method', type=str,
                     default=None, help='数据预处理方法，默认为空')
 parser.add_argument('--times', type=str,
                     default=None, help="trainin times")
-parser.add_argument('--deterministic', type=int, default=1,
+parser.add_argument('--deterministic', type=int, default=0,
                     help='whether use deterministic training')
 args = parser.parse_args()
 
@@ -67,13 +67,20 @@ if __name__ == '__main__':
     snapshot_path = snapshot_path + '_epo' + str(train_config.max_epochs)
     snapshot_path = snapshot_path + '_bs' + str(train_config.batch_size)
     snapshot_path = snapshot_path + '_lr' + str(train_config.base_lr)
-    snapshot_path = snapshot_path + '_ssize' + str(train_config.dataset_spectrum_size)
+    # 先尝试获取 dataset_spectrum_size，如果不存在则尝试 dataset_scale_size
+    attr_name = 'dataset_spectrum_size' if hasattr(train_config, 'dataset_spectrum_size') else 'dataset_scale_size'
+    # 获取属性值
+    attr_value = getattr(train_config, attr_name, None)
+    # 拼接字符串
+    snapshot_path = snapshot_path + '_ssize' + str(attr_value)
 
     snapshot_path_parent = snapshot_path
 
     if args.times == None:
         args.times = str(get_next_time_number(snapshot_path_parent))
-
+    
+    train_config.times = args.times
+    
     snapshot_path = snapshot_path + "/{}/".format(args.times)
 
     if not os.path.exists(snapshot_path):
@@ -85,7 +92,8 @@ if __name__ == '__main__':
                                                 network_name, current_module="networks_architecture")
     assert network_class != None, f"Network {network_name} is not derived from networks_architecture"
 
-    trainer_name = f"{train_config.net_name}_trainer_{train_config.dataset_name}"
+    
+    trainer_name = f"{getattr(train_config, 'trainer_prefix', '')}{train_config.net_name}_trainer_{train_config.dataset_name}"
     trainer_func = recursive_find_python_class([join(sys.path[0], "network_training")],
                                                trainer_name, current_module="network_training")
     assert trainer_func != None, f"Trainer {trainer_name} is not derived from network_training"

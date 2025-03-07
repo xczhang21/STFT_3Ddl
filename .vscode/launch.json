@@ -13,6 +13,97 @@
             "justMyCode": true
         },
         {
+            "name": "mfunet_pi_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunet_ss64_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "mfunet_pi_ss128_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunet_ss128_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "mfunet_pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunet_ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "msunet_phase_ssms_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "msunet_ssms_train",
+                "--prepro_method",
+                "phase",
+            ]
+        },
+        {
+            "name": "msunet_intensity_ssms_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "msunet_ssms_train",
+                "--prepro_method",
+                "intensity",
+            ]
+        },
+        {
+            "name": "unet_phase_gadf_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "unet_gadf_ss64_train",
+                "--prepro_method",
+                "phase",
+            ]
+        },
+        {
+            "name": "unet_phase_gasf_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "unet_gasf_ss64_train",
+                "--prepro_method",
+                "phase",
+            ]
+        },
+        {
             "name": "unet_pi_ss64_train",
             "type": "debugpy",
             "request": "launch",

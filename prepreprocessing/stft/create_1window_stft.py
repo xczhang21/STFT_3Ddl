@@ -47,7 +47,7 @@ def get_iterfile_names(directory_path):
 
 def read_raw_signal_file(dataset_path, class_name, iterfile_name):
     iterfile_path = Path(dataset_path) / class_name / f"{iterfile_name}.mat"
-    # mat = loadmat('/home/zhang/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/CARHORN/carhorn1.mat')
+    # mat = loadmat('/home/zhang03/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/CARHORN/carhorn1.mat')
     mat = loadmat(str(iterfile_path))
     phase = mat[iterfile_name][0]
     intensity = mat[iterfile_name][1]
@@ -81,7 +81,7 @@ def get_stft_spectrogram(signal_data, fs, window, nperseg, noverlap):
     return len(faxis), len(taxis), np.abs(spectrum)
 
 
-dataset_path = Path('/home/zhang/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/')
+dataset_path = Path('/home/zhang03/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K/')
 
 window = 'hamming'
 nperseg = 266
@@ -89,8 +89,8 @@ noverlap = 0
 fs = 10000
 
 experimet_id = f"w_{window}_np_{nperseg}_no_{noverlap}"
-save_path = Path(f'/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/{experimet_id}/')
-lists_save_path = Path(f"/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase/{experimet_id}/")
+save_path = Path(f'/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/{experimet_id}/')
+lists_save_path = Path(f"/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase/{experimet_id}/")
 
 # 检查save_path是否存在
 if not save_path.exists():

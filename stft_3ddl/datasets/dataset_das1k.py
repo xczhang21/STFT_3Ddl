@@ -74,7 +74,7 @@ def dataset_reader(data_dir, sample_list, max_num_samples, split):
     return datas
 
 
-class ds1k_dataset(Dataset):
+class das1k_dataset(Dataset):
     def __init__(self, base_dir, list_dir, split, max_num_samples=None, transform=None, crop=False):
         self.crop = crop
         self.transform = transform
@@ -101,21 +101,21 @@ class ds1k_dataset(Dataset):
 
 # 模块测试
 if __name__ == '__main__':
-    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64'
-    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
-    train_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
-    test_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
+    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64'
+    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
+    train_datasets = das1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
+    test_datasets = das1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
     print(train_datasets[0]['spectrum'].shape)
 
-    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/intensity/matrixs/scale_64'
-    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/intensity'
-    train_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
-    test_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
+    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/intensity/matrixs/scale_64'
+    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/intensity'
+    train_datasets = das1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
+    test_datasets = das1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
     print(train_datasets[0]['spectrum'].shape)
     
-    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/pi/matrixs/scale_64'
-    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/pi'
-    train_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
-    test_datasets = ds1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
+    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/pi/matrixs/scale_64'
+    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/pi'
+    train_datasets = das1k_dataset(base_dir=base_dir, list_dir=list_dir, split='train')
+    test_datasets = das1k_dataset(base_dir=base_dir, list_dir=list_dir, split='test')
     print(train_datasets[0]['spectrum'].shape)
     

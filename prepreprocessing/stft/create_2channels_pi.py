@@ -5,7 +5,7 @@ intensity(32, 32),intensity(128, 128),intensity(256, 256),
 合并成
 phase+intensity(2, 64, 64)、phase+intensity(2, 128, 128)、phase+intensity(2, 256, 256)
 并保存到
-/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase+intensity中
+/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase+intensity中
 """
 
 from pathlib import Path
@@ -13,7 +13,7 @@ import numpy as np
 from tqdm import tqdm
 import shutil
 
-base_path = Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K")
+base_path = Path("/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K")
 
 phase_dir = base_path / "phase" / "matrixs"
 intensity_dir = base_path / "intensity" / "matrixs"

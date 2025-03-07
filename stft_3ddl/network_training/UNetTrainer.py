@@ -17,11 +17,14 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utilities.grad_cam import GradCAM
 from utilities.grad_cam import visualize_cam
+from utilities.grad_cam import save_grad_cam
 
+from utilities.confusion_matrix import  save_confusion_matrix
 
+from utilities.pred_details import save_pred_details
 
 def UNet_trainer_das1k(args, model, snapshot_path):
-    from datasets.dataset_das1k import ds1k_dataset, RandomGenerator
+    from datasets.dataset_das1k import das1k_dataset, RandomGenerator
 
     transform = transforms.Compose([
         RandomGenerator()
@@ -38,18 +41,19 @@ def UNet_trainer_das1k(args, model, snapshot_path):
     base_lr = args.base_lr
     num_classes = args.dataset.num_classes
     batch_size = args.batch_size * args.n_gpu
-    db_train = ds1k_dataset(
+    db_train = das1k_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='train',
         transform=transform
     )
-    db_val = ds1k_dataset(
+    db_val = das1k_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='test',
         transform=transform
     )
+    class_names = args.dataset.class_names
     print("The length of train set is: {}".format(len(db_train)))
 
     def work_init_fn(worker_id):
@@ -141,29 +145,23 @@ def UNet_trainer_das1k(args, model, snapshot_path):
             logging.info(f'epoch:{epoch_num} val_loss:{val_loss:.5f} val_acc:{accuracy:.5f}')
             writer.add_scalar('Loss/val', val_loss, epoch_num)
             writer.add_scalar('Accuracy/val', accuracy, epoch_num)
-        
+
+        # 保存混淆矩阵
+        save_CM_interval = 5 # confusion matrix生成周期
+        if epoch_num == max_epoch-1:
+            save_confusion_matrix(writer, val_labels, val_outputs, num_classes, class_names)
+            
+        # 保存CAM      
         save_CAM_interval = 5 # grad_CAM生成周期
-        save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
-        if epoch_num == 0:
-            spectrum_id = val_spectrums[save_CAM_num]['id']
-            spectrum = val_spectrums[save_CAM_num]['spectrum']
-            writer.add_image(f'{spectrum_id}', torch.flip(spectrum, dims=[1]), 0, dataformats='CHW')
-
-        if (epoch_num + 1) % save_CAM_interval == 0:
-            # 每20次迭代，保存一次spectrum 图和 grad_CAM图
-            spectrum_id = val_spectrums[save_CAM_num]['id']
-            spectrum = val_spectrums[save_CAM_num]['spectrum']
-
-            grad_cam = GradCAM(model, target_layer=model.decoder1)
-            # grad_cam = GradCAM(model, target_layer=model.layer4[-1].conv3)
-            # grad_cam = GradCAM(model, target_layer=model.layer3)
-            cam = grad_cam.generate_cam(spectrum.unsqueeze(0).cuda(), target_class=None, target_batch=0)
-            if spectrum.shape[0] == 0:
-                superimposed_image = visualize_cam(cam, spectrum)
-            else:
-                superimposed_image = visualize_cam(cam, spectrum[:1])
-            writer.add_image(f'{spectrum_id}/epoch_{epoch_num}', superimposed_image, 1, dataformats='HWC')
+        # save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
+        save_CAM_num = None # 对val_spectrums的多有特征进行grad_CAM
+        save_grad_cam(epoch_num, val_spectrums, model, model.decoder1, writer, save_CAM_interval, save_CAM_num)
         
+        # 保存预测详情
+        if epoch_num == max_epoch-1:
+        # if epoch_num == 1:
+            save_pred_details(writer, val_labels, val_outputs, num_classes, class_names, db_val.sample_list, epoch_num)
+
         # save_interval = 50
         # if epoch_num > int(max_epoch / 2) and (epoch_num + 1) % save_interval == 0:
         #     save_mode_path = os.path.join(snapshot_path, 'epoch_' + str(epoch_num) + '.pth')
@@ -206,8 +204,8 @@ if __name__ == '__main__':
     #              '--num_classes', '10',
     #              '--batch_size', '32',
     #              '--n_gpu', '1',
-    #              '--root_path', '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
-    #              '--list_dir', '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
+    #              '--root_path', '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64',
+    #              '--list_dir', '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase',
     #              '--seed', '1234',
     #              '--max_epochs', '150',
     #              '--task_type', 'cla',
@@ -222,10 +220,14 @@ if __name__ == '__main__':
     config.base_lr = 0.01
     config.batch_size = 32
     config.dataset = ml_collections.ConfigDict()
-    config.dataset.list_dir = "/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
+    config.dataset.list_dir = "/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
     config.dataset.num_channels = 1
     config.dataset.num_classes = 10
-    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
+    config.dataset.root_path = "/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
+    config.dataset.class_names = ['cathorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
+                          'rain', 'shoveling', 'thunderstorm', 'welding']
+    # config.dataset.class_names = ['汽车喇叭', '钻孔', '脚步声', '手锤', '手锯', '电镐',
+                    #   '雨', '铲', '雷雨', '焊接']
     config.dataset_name = "das1k"
     config.dataset_spectrum_size = 64
     config.is_pretrain = False

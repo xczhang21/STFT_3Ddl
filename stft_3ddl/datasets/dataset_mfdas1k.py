@@ -71,8 +71,8 @@ def dataset_reader(data_dir, spectrum_size, sample_list, max_num_samples, split)
     return datas
 
 
-class mfds1k_dataset(Dataset):
-    def __init__(self, base_dir, pectrum_size, list_dir, split, max_num_samples=None, transform=None, crop=False):
+class mfdas1k_dataset(Dataset):
+    def __init__(self, base_dir, spectrum_size, list_dir, split, max_num_samples=None, transform=None, crop=False):
         self.crop = crop
         self.transform = transform
         self.split = split
@@ -81,7 +81,7 @@ class mfds1k_dataset(Dataset):
         elif self.split == 'test':
             self.sample_list = open(os.path.join(list_dir, 'test' + '.txt')).readlines()
         self.data_dir = base_dir
-        self.spectrum_size = pectrum_size
+        self.spectrum_size = spectrum_size
         self.max_num_samples = max_num_samples
         self.datas = dataset_reader(self.data_dir, self.spectrum_size, self.sample_list, self.max_num_samples, self.split)
     
@@ -97,8 +97,8 @@ class mfds1k_dataset(Dataset):
 
 # 模块测试
 if __name__ == '__main__':
-    base_dir = '/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/'
+    base_dir = '/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/'
     spectrum_size = 64
-    list_dir = '/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
-    train_datasets = mfds1k_dataset(base_dir=base_dir, pectrum_size=spectrum_size, list_dir=list_dir, split='train')
-    test_datasets = mfds1k_dataset(base_dir=base_dir, pectrum_size=spectrum_size, list_dir=list_dir, split='test')
+    list_dir = '/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase'
+    train_datasets = mfdas1k_dataset(base_dir=base_dir, pectrum_size=spectrum_size, list_dir=list_dir, split='train')
+    test_datasets = mfdas1k_dataset(base_dir=base_dir, pectrum_size=spectrum_size, list_dir=list_dir, split='test')

@@ -16,11 +16,15 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utilities.grad_cam import GradCAM
-from utilities.grad_cam import visualize_cam
+from utilities.grad_cam import visualize_cam_multi
+from utilities.grad_cam import save_grad_cam_multi
 
+from utilities.confusion_matrix import  save_confusion_matrix
 
-def MFUNet_trainer_das1k(args, model, snapshot_path):
-    from datasets.dataset_mfdas1k import mfds1k_dataset, RandomGenerator
+from utilities.pred_details import save_pred_details
+
+def MFUNet_trainer_mfdas1k(args, model, snapshot_path):
+    from datasets.dataset_mfdas1k import mfdas1k_dataset, RandomGenerator
 
     transform = transforms.Compose([
         RandomGenerator()
@@ -37,20 +41,21 @@ def MFUNet_trainer_das1k(args, model, snapshot_path):
     base_lr = args.base_lr
     num_classes = args.dataset.num_classes
     batch_size = args.batch_size * args.n_gpu
-    db_train = mfds1k_dataset(
+    db_train = mfdas1k_dataset(
         base_dir=args.dataset.root_path,
-        pectrum_size=args.dataset.spectrum_size,
+        spectrum_size=args.dataset.spectrum_size,
         list_dir=args.dataset.list_dir,
         split='train',
         transform=transform
     )
-    db_val = mfds1k_dataset(
+    db_val = mfdas1k_dataset(
         base_dir=args.dataset.root_path,
-        pectrum_size=args.dataset.spectrum_size,
+        spectrum_size=args.dataset.spectrum_size,
         list_dir=args.dataset.list_dir,
         split='test',
         transform=transform
     )
+    class_names = args.dataset.class_names
     print("The length of train set is: {}".format(len(db_train)))
 
     def work_init_fn(worker_id):
@@ -144,30 +149,26 @@ def MFUNet_trainer_das1k(args, model, snapshot_path):
             logging.info(f'epoch:{epoch_num} val_loss:{val_loss:.5f} val_acc:{accuracy:.5f}')
             writer.add_scalar('Loss/val', val_loss, epoch_num)
             writer.add_scalar('Accuracy/val', accuracy, epoch_num)
-        
-        save_CAM_interval = 5 # grad_CAM生成周期
-        save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
-        if epoch_num == 0:
-            spectrum_id = val_spectrums[save_CAM_num]['id']
-            spectrum = val_spectrums[save_CAM_num]['spectrums'][0]
-            writer.add_image(f'{spectrum_id}', torch.flip(spectrum, dims=[1]), 0, dataformats='CHW')
 
-        if (epoch_num + 1) % save_CAM_interval == 0:
-            # 每20次迭代，保存一次spectrum 图和 grad_CAM图
-            spectrum_id = val_spectrums[save_CAM_num]['id']
-            spectrums = val_spectrums[save_CAM_num]['spectrums']
-
-            grad_cam = GradCAM(model, target_layer=model.decoder1)
-            # grad_cam = GradCAM(model, target_layer=model.layer4[-1].conv3)
-            # grad_cam = GradCAM(model, target_layer=model.layer3)
+        # 保存混淆矩阵
+        save_CM_interval = 5 # confusion matrix生成周期
+        if epoch_num == max_epoch-1:
+            save_confusion_matrix(writer, val_labels, val_outputs, num_classes, class_names)
             
-            cam = grad_cam.generate_cam([spectrum.unsqueeze(0).cuda() for spectrum in spectrums], target_class=None, target_batch=0)
-            if spectrum.shape[0] == 0:
-                superimposed_image = visualize_cam(cam, spectrum)
-            else:
-                superimposed_image = visualize_cam(cam, spectrum[:1])
-            writer.add_image(f'{spectrum_id}/epoch_{epoch_num}', superimposed_image, 1, dataformats='HWC')
+        # 保存CAM      
+        save_CAM_interval = 5 # grad_CAM生成周期
+        # save_CAM_num = 0 # 对val_spectrums的第几张进行grad_CAM
+        save_CAM_num = None # 对val_spectrums的多有特征进行grad_CAM
+        # save_grad_cam(epoch_num, val_spectrums, model, model.decoder1, writer, save_CAM_interval, save_CAM_num)
+        # 因为MFUNet是多输入结构，所以修改save_grad_cam为save_grad_cam_multi以适应MFUNet
+        save_grad_cam_multi(epoch_num, val_spectrums, model, [model.encoder1_4, model.encoder2_4, model.decoder1], writer, save_CAM_interval, save_CAM_num)
+
         
+        # 保存预测详情
+        if epoch_num == max_epoch-1:
+        # if epoch_num == 1:
+            save_pred_details(writer, val_labels, val_outputs, num_classes, class_names, db_val.sample_list, epoch_num)
+
         # save_interval = 50
         # if epoch_num > int(max_epoch / 2) and (epoch_num + 1) % save_interval == 0:
         #     save_mode_path = os.path.join(snapshot_path, 'epoch_' + str(epoch_num) + '.pth')
@@ -183,9 +184,6 @@ def MFUNet_trainer_das1k(args, model, snapshot_path):
     return f"val_loss:{val_loss:.5f}\t val_acc:{accuracy:.5f}"
 
 
-
-
-
 # 文件测试
 if __name__ == '__main__':
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -199,10 +197,12 @@ if __name__ == '__main__':
     config.base_lr = 0.01
     config.batch_size = 32
     config.dataset = ml_collections.ConfigDict()
-    config.dataset.list_dir = "/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
+    config.dataset.list_dir = "/home/zhang03/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
     config.dataset.num_channels = 1
     config.dataset.num_classes = 10
-    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K"
+    config.dataset.root_path = "/home/zhang03/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K"
+    config.dataset.class_names = ['cathorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
+                          'rain', 'shoveling', 'thunderstorm', 'welding']
     config.dataset.spectrum_size = 256
     config.dataset_name = "mfdas1k"
     config.dataset_spectrum_size = 256
@@ -243,4 +243,4 @@ if __name__ == '__main__':
     network = MFUNet(config=config_net)
     network = network.cuda()
 
-    trainer = MFUNet_trainer_das1k(args=config, model=network, snapshot_path=snapshot_path)
+    trainer = MFUNet_trainer_mfdas1k(args=config, model=network, snapshot_path=snapshot_path)
