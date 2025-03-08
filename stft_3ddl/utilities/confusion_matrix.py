@@ -37,7 +37,7 @@ def get_confusion_matrix(preds, labels, num_classes, normalize="true"):
     return cmtx
 
 def visualize_confusion_matrix(cmtx, num_classes, class_names=None, figsize=None):
-    plt.rcParams['font.sans-serif']=['SimHei']
+    # plt.rcParams['font.sans-serif']=['SimHei']
     plt.rcParams['font.family']='sans-serif' 
     plt.rcParams['axes.unicode_minus'] = False
     if class_names is None or type(class_names) != list:
