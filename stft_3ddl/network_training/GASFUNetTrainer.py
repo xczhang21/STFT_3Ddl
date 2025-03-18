@@ -11,7 +11,6 @@ from tensorboardX import SummaryWriter
 from tqdm import tqdm
 import torch
 import os
-import numpy as np
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -22,6 +21,10 @@ from utilities.grad_cam import save_grad_cam
 from utilities.confusion_matrix import  save_confusion_matrix
 
 from utilities.pred_details import save_pred_details
+
+from utilities.evaluation_method import compute_metrics
+from utilities.evaluation_method import compute_map
+from utilities.evaluation_method import log_metrics
 
 def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
     from datasets.dataset_das1k_gasf import das1k_gasf_dataset, RandomGenerator
@@ -54,6 +57,9 @@ def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
         transform=transform
     )
     class_names = args.dataset.class_names
+    
+    writer = SummaryWriter(snapshot_path + '/log')
+    
     print("The length of train set is: {}".format(len(db_train)))
 
     def work_init_fn(worker_id):
@@ -63,7 +69,7 @@ def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
         db_train,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=1,
+        num_workers=args.num_workers,
         pin_memory=True,
         worker_init_fn=work_init_fn,
     )
@@ -72,8 +78,6 @@ def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
 
     optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.05)
     scheduler = lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.9)
-    writer = SummaryWriter(snapshot_path + '/log')
-    tier_num = 0
     max_epoch = args.max_epochs
     max_iterations = args.max_epochs * len(trainloader)
     logging.info("{} iterations per epoch. {} max iterations".format(len(trainloader), max_iterations))
@@ -81,10 +85,10 @@ def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
 
     for epoch_num in iterator:
         running_loss = 0.0
-        train_correct = 0
-        val_correct = 0
-        total = 0
-        val_total = 0
+        all_train_labels = []
+        all_train_preds = []
+        all_train_probs = []
+
         for step, sampled_batch in enumerate(trainloader):
             model.train()
             image_batch, label_batch = sampled_batch['image'], sampled_batch['label']
@@ -101,72 +105,81 @@ def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
             # 累加损失
             running_loss += loss.item()
 
-            # 计算精度
-            predictions = torch.argmax(outputs, dim=1)
-            train_correct += (predictions == label_batch).sum().item()
-            total += label_batch.size(0)
+            probs = torch.softmax(outputs, dim=1) # 转换为概率分布
+            predictions = torch.argmax(probs, dim=1)
 
+            all_train_labels.append(label_batch)
+            all_train_preds.append(predictions)
+            all_train_probs.append(probs)
+
+    
         # 更新学习率
         scheduler.step()
 
-        # 计算平均损失和精度
-        avg_loss = running_loss / len(trainloader)
-        accuracy = train_correct / total
-        writer.add_scalar('Loss/train', avg_loss, epoch_num)
-        writer.add_scalar('Accuracy/train', accuracy, epoch_num)
+        all_train_labels = torch.cat(all_train_labels)
+        all_train_preds = torch.cat(all_train_preds)
+        all_train_probs = torch.cat(all_train_probs)
+
+        avg_train_loss = running_loss / len(trainloader)
+        train_metrics = compute_metrics(all_train_labels, all_train_preds, num_classes)
+        train_map = compute_map(torch.nn.functional.one_hot(all_train_labels, num_classes), all_train_probs, num_classes)
+
+        log_metrics(writer, "train", avg_train_loss, train_metrics, train_map, epoch_num)
+
 
         model.eval()
+        running_val_loss = 0.0
         with torch.no_grad():
-            val_images = []
-            val_labels = torch.Tensor().cuda()
-            val_outputs = torch.Tensor().cuda()
+            all_val_images = []
+            all_val_outputs = []
+            all_val_labels = []
+            all_val_preds = []
+            all_val_probs = []
             for val_data in db_val.datas:
                 image = RandomGenerator.divisive_crop(val_data['image'])
                 image_id = val_data['id']
-                val_images.append({'image':image, 'id':image_id})
-                image = image.unsqueeze(0)
-                label = RandomGenerator.label_convert(val_data['label'])
-                label = label.unsqueeze(0)
-                image, label = image.cuda(), label.cuda()
-                output = model(image)
-                val_labels = torch.cat((val_labels, label))
-                val_outputs = torch.cat((val_outputs, output))
+                all_val_images.append({'image':image, 'id':image_id})
+                label = RandomGenerator.label_convert(val_data['label']).unsqueeze(0).cuda()
 
-            # 计算损失
-            val_loss = ce_loss(val_outputs, val_labels.long()).cpu().detach().numpy()
+                output = model(image.unsqueeze(0).cuda())
+                probs = torch.softmax(output, dim=1)
+
+                loss = ce_loss(output, label.long())
+                running_val_loss += loss.item()
+
+                all_val_outputs.append(output)
+                all_val_labels.append(label)
+                all_val_preds.append(torch.argmax(probs, dim=1))
+                all_val_probs.append(probs)
             
-            # 计算精度
-            predictions = torch.argmax(val_outputs, dim=1)
-            val_correct += (predictions == val_labels).sum().item()
-            val_total += val_labels.size(0)
+            all_val_outputs = torch.cat(all_val_outputs)
+            all_val_labels = torch.cat(all_val_labels)
+            all_val_preds = torch.cat(all_val_preds)
+            all_val_probs = torch.cat(all_val_probs)
 
-            # 计算平均精度
-            accuracy = val_correct / val_total
-            logging.info(f'epoch:{epoch_num} val_loss:{val_loss:.5f} val_acc:{accuracy:.5f}')
-            writer.add_scalar('Loss/val', val_loss, epoch_num)
-            writer.add_scalar('Accuracy/val', accuracy, epoch_num)
+            val_metrics = compute_metrics(all_val_labels, all_val_preds, num_classes)
+            val_map = compute_map(torch.nn.functional.one_hot(all_val_labels.long(), num_classes), all_val_probs, num_classes)
+
+            avg_val_loss = running_val_loss / len(db_train.datas)
+
+            log_metrics(writer, "val", avg_val_loss, val_metrics, val_map, epoch_num)
+
+            logging.info(f"epoch:{epoch_num} val_loss:{avg_val_loss:.5f} val_acc:{val_metrics['accuracy']:.5f} val_pre:{val_metrics['precision']:.5f}")
 
         # 保存混淆矩阵
-        save_CM_interval = 5 # confusion matrix生成周期
         if epoch_num == max_epoch-1:
-            save_confusion_matrix(writer, val_labels, val_outputs, num_classes, class_names)
+            save_confusion_matrix(writer, all_val_labels, all_val_outputs, num_classes, class_names)
             
         # 保存CAM      
-        save_CAM_interval = 5 # grad_CAM生成周期
+        save_CAM_interval = args.save_CAM_interval # grad_CAM生成周期
         # save_CAM_num = 0 # 对val_images的第几张进行grad_CAM
         save_CAM_num = None # 对val_images的多有特征进行grad_CAM
-        save_grad_cam(epoch_num, val_images, model, model.decoder1, writer, save_CAM_interval, save_CAM_num)
+        save_grad_cam(epoch_num, all_val_images, model, model.decoder1, writer, save_CAM_interval, save_CAM_num)
         
         # 保存预测详情
         if epoch_num == max_epoch-1:
         # if epoch_num == 1:
-            save_pred_details(writer, val_labels, val_outputs, num_classes, class_names, db_val.sample_list, epoch_num)
-
-        # save_interval = 50
-        # if epoch_num > int(max_epoch / 2) and (epoch_num + 1) % save_interval == 0:
-        #     save_mode_path = os.path.join(snapshot_path, 'epoch_' + str(epoch_num) + '.pth')
-        #     torch.save(model.state_dict(), save_mode_path)
-        #     logging.info("save model to {}".format(save_mode_path))
+            save_pred_details(writer, all_val_labels, all_val_outputs, num_classes, class_names, db_val.sample_list, epoch_num)
         
         if epoch_num >= max_epoch - 1:
             save_mode_path = os.path.join(snapshot_path, 'epoch_' + str(epoch_num) + '.pth')
@@ -174,7 +187,7 @@ def GASFUNet_trainer_das1k_gasf(args, model, snapshot_path):
             logging.info("save model to {}".format(save_mode_path))
 
     writer.close()
-    return f"val_loss:{val_loss:.5f}\t val_acc:{accuracy:.5f}"
+    return f"val_loss:{avg_val_loss:.5f}\t val_acc:{val_metrics['accuracy']:.5f}\t val_pre:{val_metrics['precision']}"
 
 
 # 文件测试

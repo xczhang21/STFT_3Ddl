@@ -703,7 +703,7 @@ def get_intensity_ss256_train():
     return config
 
 
-def get_ss64_train():
+def get_phase_ss64_train():
     config = _base_config()
 
     config.dataset_name = "das1k"
@@ -723,7 +723,7 @@ def get_ss64_train():
 
     return config
 
-def get_ss128_train():
+def get_phase_ss128_train():
     config = _base_config()
 
     config.dataset_name = "das1k"
@@ -743,7 +743,7 @@ def get_ss128_train():
 
     return config
 
-def get_ss256_train():
+def get_phase_ss256_train():
     config = _base_config()
 
     config.dataset_name = "das1k"

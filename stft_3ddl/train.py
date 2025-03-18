@@ -23,6 +23,10 @@ parser.add_argument('--times', type=str,
                     default=None, help="trainin times")
 parser.add_argument('--deterministic', type=int, default=0,
                     help='whether use deterministic training')
+parser.add_argument('--num_workers', type=int, default=16,
+                    help="控制数据加载的线程数")
+parser.add_argument('--save_CAM_interval', type=int, default=10,
+                    help="控制CAM保存间隔")
 args = parser.parse_args()
 
 
@@ -46,6 +50,9 @@ if __name__ == '__main__':
     assert callable(getattr(train_configs, f"get_{train_config_name}")), f"get_{train_config_name} is not callable."
 
     train_config = getattr(train_configs, f"get_{train_config_name}")()
+
+    train_config.num_workers = args.num_workers
+    train_config.save_CAM_interval = args.save_CAM_interval
 
     random.seed(train_config.seed)
     np.random.seed(train_config.seed)
