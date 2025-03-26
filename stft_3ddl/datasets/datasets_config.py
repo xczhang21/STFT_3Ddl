@@ -65,12 +65,12 @@ def _get_das1k_config():
 
 def _get_das1k_padding0_config():
     config = _get_das1k_config()
-    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed/DAS1K_padding0/"))
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_padding0/"))
     return config
 
 def _get_das1k_resize_config():
     config = _get_das1k_config()
-    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed/DAS1K_resize/"))
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_resize/"))
     return config
 
 def get_das1k_resize_intensity_ssize64_config():
