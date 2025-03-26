@@ -63,6 +63,88 @@ def _get_das1k_config():
                     #   '雨', '铲', '雷雨', '焊接']
     return config
 
+def _get_das1k_padding0_config():
+    config = _get_das1k_config()
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed/DAS1K_padding0/"))
+    return config
+
+def _get_das1k_resize_config():
+    config = _get_das1k_config()
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed/DAS1K_resize/"))
+    return config
+
+def get_das1k_resize_intensity_ssize64_config():
+    config = _get_das1k_resize_config()
+    config.root_path=str(Path(config.root_path) / "intensity/scale_64")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_resize_intensity_ssize128_config():
+    config = _get_das1k_resize_config()
+    config.root_path=str(Path(config.root_path) / "intensity/scale_128")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_resize_intensity_ssize256_config():
+    config = _get_das1k_resize_config()
+    config.root_path=str(Path(config.root_path) / "intensity/scale_256")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_resize_ssize64_config():
+    config = _get_das1k_resize_config()
+    config.root_path=str(Path(config.root_path) / "phase/scale_64")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_das1k_resize_ssize128_config():
+    config = _get_das1k_resize_config()
+    config.root_path=str(Path(config.root_path) / "phase/scale_128")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_das1k_resize_ssize256_config():
+    config = _get_das1k_resize_config()
+    config.root_path=str(Path(config.root_path) / "phase/scale_256")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_das1k_padding0_intensity_ssize64_config():
+    config = _get_das1k_padding0_config()
+    config.root_path=str(Path(config.root_path) / "intensity/scale_64")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_padding0_intensity_ssize128_config():
+    config = _get_das1k_padding0_config()
+    config.root_path=str(Path(config.root_path) / "intensity/scale_128")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_padding0_intensity_ssize256_config():
+    config = _get_das1k_padding0_config()
+    config.root_path=str(Path(config.root_path) / "intensity/scale_256")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_padding0_phase_ssize64_config():
+    config = _get_das1k_padding0_config()
+    config.root_path=str(Path(config.root_path) / "phase/scale_64")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_das1k_padding0_phase_ssize128_config():
+    config = _get_das1k_padding0_config()
+    config.root_path=str(Path(config.root_path) / "phase/scale_128")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_das1k_padding0_phase_ssize256_config():
+    config = _get_das1k_padding0_config()
+    config.root_path=str(Path(config.root_path) / "phase/scale_256")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
 def get_mfdas1k_pi_ssize64_config():
     config = _get_mfdas1k_config()
     config.type = "mf"
