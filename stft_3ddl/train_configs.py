@@ -774,7 +774,7 @@ def get_intensity_unet_ss256_train():
     return config
 
 
-def get_unet_ss64_train():
+def get_phase_unet_ss64_train():
     config = _base_config()
 
     config.net_name = "UNet"
@@ -795,7 +795,7 @@ def get_unet_ss64_train():
 
     return config
 
-def get_unet_ss128_train():
+def get_phase_unet_ss128_train():
     config = _base_config()
 
     config.net_name = "UNet"
@@ -816,7 +816,7 @@ def get_unet_ss128_train():
 
     return config
 
-def get_unet_ss256_train():
+def get_phase_unet_ss256_train():
     config = _base_config()
 
     config.net_name = "UNet"
@@ -838,9 +838,10 @@ def get_unet_ss256_train():
     return config
 
 
-def get_pi_ss64_train():
+def get_pi_resnet_ss64_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = 'pi'
     config.dataset_spectrum_size = 64
@@ -858,9 +859,10 @@ def get_pi_ss64_train():
 
     return config
 
-def get_pi_ss128_train():
+def get_pi_resnet_ss128_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = 'pi'
     config.dataset_spectrum_size = 128
@@ -878,9 +880,10 @@ def get_pi_ss128_train():
 
     return config
 
-def get_pi_ss256_train():
+def get_pi_resnet_ss256_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = 'pi'
     config.dataset_spectrum_size = 256
@@ -899,9 +902,10 @@ def get_pi_ss256_train():
     return config
 
 
-def get_intensity_ss64_train():
+def get_intensity_resnet_ss64_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = 'intensity'
     config.dataset_spectrum_size = 64
@@ -919,9 +923,10 @@ def get_intensity_ss64_train():
 
     return config
 
-def get_intensity_ss128_train():
+def get_intensity_resnet_ss128_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = 'intensity'
     config.dataset_spectrum_size = 128
@@ -939,9 +944,10 @@ def get_intensity_ss128_train():
 
     return config
 
-def get_intensity_ss256_train():
+def get_intensity_resnet_ss256_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = 'intensity'
     config.dataset_spectrum_size = 256
@@ -960,9 +966,10 @@ def get_intensity_ss256_train():
     return config
 
 
-def get_phase_ss64_train():
+def get_phase_resnet_ss64_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = "phase"
     config.dataset_spectrum_size = 64
@@ -980,9 +987,10 @@ def get_phase_ss64_train():
 
     return config
 
-def get_phase_ss128_train():
+def get_phase_resnet_ss128_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = "phase"
     config.dataset_spectrum_size = 128
@@ -1000,9 +1008,10 @@ def get_phase_ss128_train():
 
     return config
 
-def get_phase_ss256_train():
+def get_phase_resnet_ss256_train():
     config = _base_config()
 
+    config.net_name = "ResNet"
     config.dataset_name = "das1k"
     config.prepro_method = "phase"
     config.dataset_spectrum_size = 256
