@@ -10,10 +10,15 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from pathlib import Path
+from torchvision import transforms
 
 
 
 class RandomGenerator(object):
+    def __init__(self, split, data_aug=False):
+        self.split = split
+        self.data_aug = data_aug
+
     @classmethod
     def divisive_crop(self, spectrum):
         spectrum_array = torch.from_numpy(spectrum.astype(np.float32))
@@ -30,10 +35,42 @@ class RandomGenerator(object):
         label_array = torch.from_numpy(label_array.astype(np.float32))
         return label_array
     
+    def train_augmentation(self, spectrum):
+        """ 训练集数据增强（随机） """
+        aug_transforms = [
+            lambda x: x + torch.randn_like(x) * 0.02, # 加高斯噪声
+            lambda x: torch.flip(x, [1]), # 水平翻转
+            lambda x: x * (0.8 + 0.4 * torch.rand_like(x)), # 亮度随机调整
+            lambda x: x + torch.sin(torch.linspace(0, 3.14, x.shape[-1])) * 0.05 # 加正弦干扰
+        ]
+        if random.random() > 0.5:
+            aug_fn = random.choice(aug_transforms)
+            spectrum = aug_fn(spectrum)
+        return spectrum
+    
+    def test_augmentation(self, spectrum):
+        """ 测试集数据增强（温和调整） """
+        test_transform = transforms.Compose([
+            lambda x: x * 0.9 + 0.1 * torch.mean(x), # 轻微平滑滤波，减少噪声影响
+            lambda x: x.clamp(min=-1.0, max=1.0) # 限制范围，避免异常值
+        ])
+        return test_transform(spectrum)
+
     def __call__(self, sample):
+        # 读取 sample 的数据
         spectrum, label = sample['spectrum'], sample['label']
+
+        # 统一处理spectrum_array 和 label_array
         spectrum_array = self.divisive_crop(spectrum)
         label_array = self.label_convert(label)
+        if self.data_aug:
+            if self.split == 'train':
+                # 训练集数据增强（随机扰动）
+                spectrum_array = self.train_augmentation(spectrum_array)
+            elif self.split == 'test':
+                # 测试集数据增强
+                spectrum_array = self.test_augmentation(spectrum_array)
+                 
         sample = {'id':sample['id'], 'spectrum':spectrum_array, 'label':label_array}
         return sample
 
@@ -75,10 +112,11 @@ def dataset_reader(data_dir, sample_list, max_num_samples, split):
 
 
 class das1k_dataset(Dataset):
-    def __init__(self, base_dir, list_dir, split, max_num_samples=None, transform=None, crop=False):
+    def __init__(self, base_dir, list_dir, split, data_aug=False, max_num_samples=None, transform=None, crop=False):
         self.crop = crop
         self.transform = transform
         self.split = split
+        self.data_aug = data_aug
         if self.split == 'train':
             self.sample_list = open(os.path.join(list_dir, 'train'+'.txt')).readlines()
         elif self.split == 'test':

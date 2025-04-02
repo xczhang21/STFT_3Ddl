@@ -27,6 +27,11 @@ parser.add_argument('--num_workers', type=int, default=16,
                     help="控制数据加载的线程数")
 parser.add_argument('--save_CAM_interval', type=int, default=10,
                     help="控制CAM保存间隔")
+# 增加功能：数据增强
+parser.add_argument('--train_data_aug', type=bool,
+                    default=False, help="对训练集进行数据增强")
+parser.add_argument('--test_data_aug', type=bool,
+                    default=False, help="对测试集进行数据增强")
 args = parser.parse_args()
 
 
@@ -81,6 +86,12 @@ if __name__ == '__main__':
     # 拼接字符串
     snapshot_path = snapshot_path + '_ssize' + str(attr_value)
 
+    # 处理数据增强标志
+    if args.train_data_aug:
+        snapshot_path += '_trainAug'
+    if args.test_data_aug:
+        snapshot_path += '_testAug'
+
     snapshot_path_parent = snapshot_path
 
     if args.times == None:
@@ -88,6 +99,10 @@ if __name__ == '__main__':
     
     train_config.times = args.times
     
+    # 将数据增强标志加到train_config
+    train_config.train_data_aug = args.train_data_aug
+    train_config.test_data_aug = args.test_data_aug
+
     snapshot_path = snapshot_path + "/{}/".format(args.times)
 
     if not os.path.exists(snapshot_path):

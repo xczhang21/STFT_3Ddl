@@ -29,8 +29,11 @@ from utilities.evaluation_method import log_metrics
 def UNet_trainer_das1k(args, model, snapshot_path):
     from datasets.dataset_das1k import das1k_dataset, RandomGenerator
 
-    transform = transforms.Compose([
-        RandomGenerator()
+    train_transform = transforms.Compose([
+        RandomGenerator(split='train', data_aug=args.train_data_aug)
+    ])
+    test_transform = transforms.Compose([
+        RandomGenerator(split='test', data_aug=args.test_data_aug)
     ])
     logging.basicConfig(
         filename=snapshot_path + '/log.txt',
@@ -48,13 +51,13 @@ def UNet_trainer_das1k(args, model, snapshot_path):
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='train',
-        transform=transform
+        transform=train_transform
     )
     db_val = das1k_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='test',
-        transform=transform
+        transform=test_transform
     )
     class_names = args.dataset.class_names
     
@@ -273,6 +276,16 @@ if __name__ == '__main__':
     snapshot_path = snapshot_path + '_bs' + str(config.batch_size)
     snapshot_path = snapshot_path + '_lr' + str(config.base_lr)
     snapshot_path = snapshot_path + '_ssize' + str(config.dataset.spectrum_size)
+
+    # 控制数据加载的线程数
+    config.num_workers = 1
+
+    # 测试模块中设置为使用数据增强
+    config.train_data_aug = True
+    config.test_data_aug = True
+
+    # 控制CAM保存间隔
+    config.save_CAM_interval = 10
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
