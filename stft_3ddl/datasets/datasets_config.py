@@ -91,19 +91,19 @@ def get_das1k_resize_intensity_ssize256_config():
     config.list_dir=str(Path(config.list_dir) / "intensity")
     return config
 
-def get_das1k_resize_ssize64_config():
+def get_das1k_resize_phase_ssize64_config():
     config = _get_das1k_resize_config()
     config.root_path=str(Path(config.root_path) / "phase/scale_64")
     config.list_dir=str(Path(config.list_dir) / "phase")
     return config
 
-def get_das1k_resize_ssize128_config():
+def get_das1k_resize_phase_ssize128_config():
     config = _get_das1k_resize_config()
     config.root_path=str(Path(config.root_path) / "phase/scale_128")
     config.list_dir=str(Path(config.list_dir) / "phase")
     return config
 
-def get_das1k_resize_ssize256_config():
+def get_das1k_resize_phase_ssize256_config():
     config = _get_das1k_resize_config()
     config.root_path=str(Path(config.root_path) / "phase/scale_256")
     config.list_dir=str(Path(config.list_dir) / "phase")
