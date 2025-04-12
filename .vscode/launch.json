@@ -5,12 +5,75 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python 调试程序: 当前文件(GPU-1)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            }
+        },
+        {
             "name": "Python 调试程序: 当前文件",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "mfunetv2_pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunetv2_ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "mfunetv3_pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunetv3_ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "mfunetv4_pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunetv4_ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "mfunetv5_pi_ss256_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "mfunetv5_ss256_train",
+                "--prepro_method",
+                "pi",
+            ]
         },
         {
             "name": "mfunet_pi_ss64_train",

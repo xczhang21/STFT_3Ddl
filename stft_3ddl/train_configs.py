@@ -14,6 +14,91 @@ def _base_config():
     config.net_name = "ResNet"
     return config
 
+def get_pi_mfunetv2_ss256_train():
+    config = _base_config()
+
+    config.net_name = "MFUNetV2"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+def get_pi_mfunetv3_ss256_train():
+    config = _base_config()
+
+    config.net_name = "MFUNetV3"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+def get_pi_mfunetv4_ss256_train():
+    config = _base_config()
+
+    config.net_name = "MFUNetV4"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+def get_pi_mfunetv5_ss256_train():
+    config = _base_config()
+
+    config.net_name = "MFUNetV5"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+
 def get_intensity_unet_resize_ss64_train():
     config = _base_config()
 
