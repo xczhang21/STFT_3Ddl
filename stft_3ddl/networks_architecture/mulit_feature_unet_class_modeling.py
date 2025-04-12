@@ -58,6 +58,7 @@ class MFUNet(nn.Module):
         # 以下是手动添加的回归头
         self.avgpool = nn.AdaptiveAvgPool2d((10,10))
         self.flatten = nn.Flatten()
+        # self.dropout_fc = nn.Dropout(p=0.5)
         # self.fc_1 = nn.Linear(in_features=out_channels, out_features=2048, )
         self.fc = nn.Linear(features *100, out_channels)
 
@@ -91,6 +92,7 @@ class MFUNet(nn.Module):
 
         output = self.avgpool(dec1)
         output = self.flatten(output)
+        # output = self.dropout_fc(output)
         output = self.fc(output)
         output = output.squeeze(-1)
         return output
@@ -113,6 +115,7 @@ class MFUNet(nn.Module):
                     ),
                     (name + "norm1", nn.BatchNorm2d(num_features=features)),
                     (name + "relu1", nn.ReLU(inplace=True)),
+                    # (name + "drop1", nn.Dropout(p=0.3)),
                     (
                         name + "conv2",
                         nn.Conv2d(
@@ -125,6 +128,7 @@ class MFUNet(nn.Module):
                     ),
                     (name + "norm2", nn.BatchNorm2d(num_features=features)),
                     (name + "relu2", nn.ReLU(inplace=True)),
+                    # (name + "drop2", nn.Dropout(p=0.3)),
                 ]
             )
         )

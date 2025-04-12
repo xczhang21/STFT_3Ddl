@@ -249,6 +249,12 @@ if __name__ == '__main__':
     snapshot_path = snapshot_path + '_lr' + str(config.base_lr)
     snapshot_path = snapshot_path + '_ssize' + str(config.dataset_spectrum_size)
 
+    # 控制数据加载的线程数
+    config.num_workers = 1
+
+    # 控制CAM保存间隔
+    config.save_CAM_interval = 10
+
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
