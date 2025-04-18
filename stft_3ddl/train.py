@@ -32,6 +32,14 @@ parser.add_argument('--train_data_aug', type=bool,
                     default=False, help="对训练集进行数据增强")
 parser.add_argument('--test_data_aug', type=bool,
                     default=False, help="对测试集进行数据增强")
+# 增加功能：batch_size
+parser.add_argument('--batch_size', type=int, default=0,
+                    help="batch size如果为0,则调用train_configs.py中的batch size")
+# 传给train_config的参数
+parser.add_argument('--to_config', type=str, default=None,
+                    help="传给train config的参数")
+
+# 
 args = parser.parse_args()
 
 
@@ -53,11 +61,18 @@ if __name__ == '__main__':
         train_config_name = f"{args.prepro_method}_{args.train_config}"
     assert hasattr(train_configs, f"get_{train_config_name}"), f"Config 'get_{train_config_name}' does not exist in the train_config."
     assert callable(getattr(train_configs, f"get_{train_config_name}")), f"get_{train_config_name} is not callable."
-
-    train_config = getattr(train_configs, f"get_{train_config_name}")()
+    
+    if args.to_config == None:
+        train_config = getattr(train_configs, f"get_{train_config_name}")()
+    else:
+        train_config = getattr(train_configs, f"get_{train_config_name}")(args.to_config)
 
     train_config.num_workers = args.num_workers
     train_config.save_CAM_interval = args.save_CAM_interval
+
+    # 设置batch size
+    if args.batch_size != 0:
+        train_config.batch_size = args.batch_size
 
     random.seed(train_config.seed)
     np.random.seed(train_config.seed)
@@ -75,6 +90,7 @@ if __name__ == '__main__':
     
     snapshot_path = "../model/{}/{}/".format(exp, train_config_name)
     snapshot_path = snapshot_path + train_config.net_name
+    snapshot_path = snapshot_path + f"_{args.to_config}" if args.to_config != None else snapshot_path
     snapshot_path = snapshot_path + '_pretrain' if train_config.is_pretrain else snapshot_path
     snapshot_path = snapshot_path + '_epo' + str(train_config.max_epochs)
     snapshot_path = snapshot_path + '_bs' + str(train_config.batch_size)

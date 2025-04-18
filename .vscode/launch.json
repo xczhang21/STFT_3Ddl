@@ -24,6 +24,42 @@
             "justMyCode": true
         },
         {
+            "name": "mfofunet_pi_ss256_train_weightadd",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": [
+                "--train_config",
+                "mfofunet_weightadd_ss256_train",
+                "--prepro_method",
+                "pi",
+                "--to_config",
+                "weight_add0.1"
+            ],
+        },
+        {
+            "name": "mfofunet_pi_ss256_train_concat",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": [
+                "--train_config",
+                "mfofunet_ss256_train",
+                "--prepro_method",
+                "pi",
+                "--to_config",
+                "concat"
+            ],
+        },
+        {
             "name": "mfunetv2_pi_ss256_train",
             "type": "debugpy",
             "request": "launch",
