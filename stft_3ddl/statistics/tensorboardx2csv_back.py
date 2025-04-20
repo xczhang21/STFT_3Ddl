@@ -140,7 +140,7 @@ if __name__ == '__main__':
     save_path = "/home/zhang/zxc/STFT_3DDL/results"
     Path(save_path).mkdir(parents=True, exist_ok=True)
 
-    with Pool(processes=32) as pool:
+    with Pool(processes=1) as pool:
         list(tqdm(pool.imap_unordered(process_scalar, SCALAR_NAMES), total=len(SCALAR_NAMES), desc="Processing"))
 
     # with ThreadPoolExecutor() as executor:

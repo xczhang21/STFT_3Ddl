@@ -42,14 +42,16 @@ def process_scalar(scalar_name: str):
     key = input_dir.name
     base_dir = input_dir
     log_paths = get_log_dir_paths(base_dir)
-    log_paths = sorted(log_paths, key=lambda p: int(p.parent.name))  # 01, 02, ...
-
-    values = []
+    
+    results = {}
     for log_path in log_paths:
+        key = log_path.parts[-3]
+        if key not in results.keys():
+            results[key] = []
         value = get_scalar_value(str(log_path), scalar_name, STEP)
-        values.append(value)
-
-    df[key] = values
+        results[key].append(value)
+    
+    df = pd.DataFrame(results)
     df.to_csv(save_path / f"{scalar_name.split('/')[0]}.csv", index=False)
 
 

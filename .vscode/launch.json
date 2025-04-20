@@ -24,6 +24,18 @@
             "justMyCode": true
         },
         {
+            "name": "tensorboardx2csv",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": ["/home/zhang/zxc/STFT_3DDL/model/STFT_3Ddl_mfdas1k/pi_mfofunet_ss256_train"]
+        },
+        {
             "name": "mfofunet_pi_ss256_train_weightadd",
             "type": "debugpy",
             "request": "launch",
