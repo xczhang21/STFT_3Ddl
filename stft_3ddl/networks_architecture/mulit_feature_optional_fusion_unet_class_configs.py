@@ -16,6 +16,19 @@ def get_MFOFUNet_learnable_add_config():
     config = _get_base_config()
     config.fusion_type = 'learnable_add'
     config.init_alpha = 0.5
+    config.residual_fusion = False
+    return config
+
+def get_MFOFUNet_learnable_channel_wise_add_config():
+    config = _get_base_config()
+    config.fusion_type = 'learnable_channel_wise_add'
+    config.residual_fusion = False
+    return config
+
+def get_MFOFUNet_learnable_spatial_wise_add_config():
+    config = _get_base_config()
+    config.fusion_type = 'learnable_spatial_wise_add'
+    config.residual_fusion = False
     return config
 
 def get_MFOFUNet_weight_add_config():
@@ -89,6 +102,9 @@ if __name__ == '__main__':
         get_MFOFUNet_dynamic_weight_config(),
         get_MFOFUNet_weight_add_config(),
         get_MFOFUNet_learnable_add_config(),
+        get_MFOFUNet_learnable_channel_wise_add_config(),
+        get_MFOFUNet_learnable_spatial_wise_add_config(),
+        
     ]
 
     for cfg in configs:

@@ -38,13 +38,51 @@ class WeightedAddFusion(nn.Module):
         return self.alpha * feat1 + (1 - self.alpha) * feat2
 
 class LearnableAddFusion(nn.Module):
-    def __init__(self, init_alpha=0.5):
+    def __init__(self, init_alpha=0.5, use_residual=False):
         super().__init__()
-        self.alpha = nn.Parameter(torch.tensor(init_alpha))
+        self.logit_alpha = nn.Parameter(torch.tensor(init_alpha))
+        self.use_residual = use_residual
 
     def forward(self, feat1, feat2):
-        alpha = torch.clamp(self.alpha, 0.0, 1.0)  # 保证在合理范围内
-        return alpha * feat1 + (1 - alpha) * feat2
+        # alpha = torch.clamp(self.logit_alpha, 0.0, 1.0)  # 保证在合理范围内
+        alpha = torch.sigmoid(self.logit_alpha) # 映射到 (0,1)
+        
+        if self.use_residual:
+            output = feat1 + alpha * (feat2 - feat1)
+        else:
+            output = alpha * feat1 + (1 - alpha) * feat2
+        return output
+
+class LearnableChannelWiseAddFusion(nn.Module):
+    def __init__(self, channels, use_residual=False):
+        super().__init__()
+        self.use_residual = use_residual
+        self.logit_alpha = nn.Parameter(torch.zeros(1, channels, 1, 1))  # (1, C, 1, 1)
+
+    def forward(self, feat1, feat2):
+        alpha = torch.sigmoid(self.logit_alpha)
+        if self.use_residual:
+            return feat1 + alpha * (feat2 - feat1)
+        else:
+            return alpha * feat1 + (1 - alpha) * feat2
+
+
+class LearnableSpatialWiseAddFusion(nn.Module):
+    def __init__(self, use_residual=False):
+        super().__init__()
+        self.use_residual = use_residual
+        self.logit_alpha = None  # 动态注册
+
+    def forward(self, feat1, feat2):
+        if self.logit_alpha is None:
+            _, _, H, W = feat1.shape
+            self.logit_alpha = nn.Parameter(torch.zeros(1, 1, H, W, device=feat1.device))
+
+        alpha = torch.sigmoid(self.logit_alpha)
+        if self.use_residual:
+            return feat1 + alpha * (feat2 - feat1)
+        else:
+            return alpha * feat1 + (1 - alpha) * feat2
 
 
 class SEFusion(nn.Module):

@@ -29,5 +29,7 @@ CONFIGS = {
         "dynamic_weight": get_MFOFUNet_dynamic_weight_config(),
         "weight_add": get_MFOFUNet_weight_add_config(),
         "learnable_add": get_MFOFUNet_learnable_add_config(),
+        "learnable_spatial_wise_add": get_MFOFUNet_learnable_spatial_wise_add_config(),
+        "learnable_channel_wise_add": get_MFOFUNet_learnable_channel_wise_add_config(),
     }
 }

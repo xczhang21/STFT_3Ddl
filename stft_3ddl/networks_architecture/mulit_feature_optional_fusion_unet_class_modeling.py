@@ -27,7 +27,11 @@ class FusionModule(nn.Module):
         elif fusion_type == 'weight_add':
             self.weight_add = WeightedAddFusion(alpha=config.alpha)
         elif fusion_type == 'learnable_add':
-            self.learnable_add = LearnableAddFusion(init_alpha=config.init_alpha)
+            self.learnable_add = LearnableAddFusion(init_alpha=config.init_alpha, use_residual=config.residual_fusion)
+        elif fusion_type == 'learnable_channel_wise_add':
+            self.learnable_add = LearnableChannelWiseAddFusion(channels=channels, use_residual=config.residual_fusion)
+        elif fusion_type == 'learnable_spatial_wise_add':
+            self.learnable_add = LearnableSpatialWiseAddFusion(use_residual=config.residual_fusion)
         else:
             raise ValueError(f"Unsupported fusion type: {fusion_type}")
 
@@ -49,6 +53,10 @@ class FusionModule(nn.Module):
         elif self.fusion_type == 'weight_add':
             return self.weight_add(feat1, feat2)
         elif self.fusion_type == 'learnable_add':
+            return self.learnable_add(feat1, feat2)
+        elif self.fusion_type == 'learnable_channel_wise_add':
+            return self.learnable_add(feat1, feat2)
+        elif self.fusion_type == 'learnable_spatial_wise_add':
             return self.learnable_add(feat1, feat2)
         else:
             raise ValueError(f"Unsupported fusion type during forward: {self.fusion_type}")

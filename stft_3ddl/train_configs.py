@@ -14,6 +14,110 @@ def _base_config():
     config.net_name = "ResNet"
     return config
 
+def get_pi_mfofunet_learnablespatialwiseadd_ss256_train(to_config):
+    config = _base_config()
+
+    config.net_name = "MFOFUNet"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+    config.fusion_method = "learnable_spatial_wise_add"
+    
+    # 假设 to_config 是类似 "learnable_add_res"或"learnable_add_nores"
+    assert to_config.startswith(config.fusion_method), f"to_config '{to_config}' 必须以 '{config.fusion_method}' 开头"
+
+    res = to_config[len(config.fusion_method)+1:]
+    assert res in ["res", "nores"], f"res '{res}' 不是'res'或'nores'"
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    nets = CONFIGS[config.net_name]
+    assert config.fusion_method in nets.keys(), f"Fusion method {config.fusion_method} is not drived from CONFIGS"
+    config.net = nets[config.fusion_method]
+    if res == "res":
+        config.net.residual_fusion = True
+    elif res == "nores":
+        config.net.residual_fusion = False
+    
+    return config
+
+
+def get_pi_mfofunet_learnablechannelwiseadd_ss256_train(to_config):
+    config = _base_config()
+
+    config.net_name = "MFOFUNet"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+    config.fusion_method = "learnable_channel_wise_add"
+    
+    # 假设 to_config 是类似 "learnable_add_res"或"learnable_add_nores"
+    assert to_config.startswith(config.fusion_method), f"to_config '{to_config}' 必须以 '{config.fusion_method}' 开头"
+
+    res = to_config[len(config.fusion_method)+1:]
+    assert res in ["res", "nores"], f"res '{res}' 不是'res'或'nores'"
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    nets = CONFIGS[config.net_name]
+    assert config.fusion_method in nets.keys(), f"Fusion method {config.fusion_method} is not drived from CONFIGS"
+    config.net = nets[config.fusion_method]
+    if res == "res":
+        config.net.residual_fusion = True
+    elif res == "nores":
+        config.net.residual_fusion = False
+    
+    return config
+
+
+def get_pi_mfofunet_learnableadd_ss256_train(to_config):
+    config = _base_config()
+
+    config.net_name = "MFOFUNet"
+    config.dataset_name = "mfdas1k"
+    config.prepro_method = "pi"
+    config.dataset_spectrum_size = 256
+    config.fusion_method = "learnable_add"
+    
+    # 假设 to_config 是类似 "learnable_add_res"或"learnable_add_nores"
+    assert to_config.startswith(config.fusion_method), f"to_config '{to_config}' 必须以 '{config.fusion_method}' 开头"
+
+    res = to_config[len(config.fusion_method)+1:]
+    assert res in ["res", "nores"], f"res '{res}' 不是'res'或'nores'"
+
+    get_dataset_config_func = f"get_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)()
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    nets = CONFIGS[config.net_name]
+    assert config.fusion_method in nets.keys(), f"Fusion method {config.fusion_method} is not drived from CONFIGS"
+    config.net = nets[config.fusion_method]
+    if res == "res":
+        config.net.residual_fusion = True
+    elif res == "nores":
+        config.net.residual_fusion = False
+    
+    return config
+
     
 
 def get_pi_mfofunet_weightadd_ss256_train(to_config):
