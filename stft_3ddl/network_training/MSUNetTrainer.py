@@ -162,7 +162,7 @@ def MSUNet_trainer_msdas1k(args, model, snapshot_path):
             val_metrics = compute_metrics(all_val_labels, all_val_preds, num_classes)
             val_map = compute_map(torch.nn.functional.one_hot(all_val_labels.long(), num_classes), all_val_probs, num_classes)
 
-            avg_val_loss = running_val_loss / len(db_train.datas)
+            avg_val_loss = running_val_loss / len(db_val.datas)
 
             log_metrics(writer, "val", avg_val_loss, val_metrics, val_map, epoch_num)
 
