@@ -24,6 +24,24 @@
             "justMyCode": true
         },
         {
+            "name": "maskedunetwrapper_phase_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0"
+            },
+            "args": [
+                "--train_config",
+                "maskedunetwrapper_ss64_train",
+                "--prepro_method",
+                "phase",
+                "--to_dataset_config",
+                "random0.5",
+            ],
+        },
+        {
             "name": "mfofunet_pi_ss256_train_learnable_add_res",
             "type": "debugpy",
             "request": "launch",

@@ -14,6 +14,127 @@ def _base_config():
     config.net_name = "ResNet"
     return config
 
+
+def _get_maskedunetwrapper_config():
+    config = _base_config()
+    config.net_name = "MaskedUNetWrapper"
+    config.dataset_name = "das1k"
+
+    config.max_epochs = 100
+    config.task_type = "mae" # Masked Autoencoder
+    return config
+    
+
+def get_phase_maskedunetwrapper_ss64_train(to_dataset_config):
+    config = _get_maskedunetwrapper_config()
+
+    config.prepro_method = "phase"
+    config.dataset_spectrum_size = 64
+
+    get_dataset_config_func = f"get_masked_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)(to_dataset_config)
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+
+def get_phase_maskedunetwrapper_ss128_train(to_dataset_config):
+    config = _get_maskedunetwrapper_config()
+
+    config.prepro_method = "phase"
+    config.dataset_spectrum_size = 128
+
+    get_dataset_config_func = f"get_masked_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)(to_dataset_config)
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+def get_phase_maskedunetwrapper_ss256_train(to_dataset_config):
+    config = _get_maskedunetwrapper_config()
+
+    config.prepro_method = "phase"
+    config.dataset_spectrum_size = 256
+
+    get_dataset_config_func = f"get_masked_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)(to_dataset_config)
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+def get_intensity_maskedunetwrapper_ss64_train(to_dataset_config):
+    config = _get_maskedunetwrapper_config()
+
+    config.prepro_method = "intensity"
+    config.dataset_spectrum_size = 64
+
+    get_dataset_config_func = f"get_masked_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)(to_dataset_config)
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+
+def get_intensity_maskedunetwrapper_ss128_train(to_dataset_config):
+    config = _get_maskedunetwrapper_config()
+
+    config.prepro_method = "intensity"
+    config.dataset_spectrum_size = 128
+
+    get_dataset_config_func = f"get_masked_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)(to_dataset_config)
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
+def get_intensity_maskedunetwrapper_ss256_train(to_dataset_config):
+    config = _get_maskedunetwrapper_config()
+
+    config.prepro_method = "intensity"
+    config.dataset_spectrum_size = 256
+
+    get_dataset_config_func = f"get_masked_{config.dataset_name}_{config.prepro_method}_ssize{str(config.dataset_spectrum_size)}_config"
+    # 判断数据集配置函数是否存在，是否可调用
+    assert hasattr(datasets_config, get_dataset_config_func), f"Function '{get_dataset_config_func}' does not exist in the datasets_config."
+    assert callable(getattr(datasets_config, get_dataset_config_func)), f"'{get_dataset_config_func}' is not callable."
+    config.dataset = getattr(datasets_config, get_dataset_config_func)(to_dataset_config)
+
+    # 判断模型配置文件是否存在
+    assert config.net_name in CONFIGS.keys(), f"Net {config.net_name} is not drived from CONFIGS."
+    config.net = CONFIGS[config.net_name]
+
+    return config
+
 def get_pi_mfofunet_learnablespatialwiseadd_ss256_train(to_config):
     config = _base_config()
 

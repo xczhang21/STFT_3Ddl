@@ -31,5 +31,7 @@ CONFIGS = {
         "learnable_add": get_MFOFUNet_learnable_add_config(),
         "learnable_spatial_wise_add": get_MFOFUNet_learnable_spatial_wise_add_config(),
         "learnable_channel_wise_add": get_MFOFUNet_learnable_channel_wise_add_config(),
-    }
+    },
+    "MaskedUNetWrapper": get_UNet_config()
+
 }

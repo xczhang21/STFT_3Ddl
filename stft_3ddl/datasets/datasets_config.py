@@ -1,5 +1,36 @@
 import ml_collections
 from pathlib import Path
+import re
+
+def _get_masked_das1k_config(to_dataset_config):
+    """
+    从 to_dataset_config 字符串中解析出 mask_mode 和 mask_ratio。
+    例如：'grid0.1' -> mask_mode='grid', mask_ratio=0.1
+    """
+    from .dataset_das1k_masked import MASK_MODEs  # ['grid', 'randmask', 'block']
+
+    match = re.match(r'([a-zA-Z_]+)([0-9.]+)', to_dataset_config)
+    if not match:
+        raise ValueError(f"无效的 to_dataset_config 格式：'{to_dataset_config}'，应为如 'grid0.1'")
+
+    mask_mode = match.group(1)
+    if mask_mode not in MASK_MODEs:
+        raise ValueError(f"mask_mode '{mask_mode}' 非法，应为 {MASK_MODEs}")
+
+    try:
+        mask_ratio = float(match.group(2))
+    except ValueError:
+        raise ValueError(f"mask_ratio 非法，无法转换为 float：'{match.group(2)}'")
+
+    config = ml_collections.ConfigDict()
+    config.num_channels = 1
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/"))
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/"))
+    config.mask_mode = mask_mode
+    config.mask_ratio = mask_ratio
+
+    return config
+
 
 def _get_das1k_gaf_config():
     config = ml_collections.ConfigDict()
@@ -71,6 +102,66 @@ def _get_das1k_padding0_config():
 def _get_das1k_resize_config():
     config = _get_das1k_config()
     config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_resize/"))
+    return config
+
+def get_masked_das1k_phase_ssize64_config(to_dataset_config):
+    """
+    to_dataset_config中保存mask_mode和mask_ratio
+    grid0.1
+    """
+    config = _get_masked_das1k_config(to_dataset_config)
+    config.root_path=str(Path(config.root_path) / "phase/matrixs/scale_64")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_masked_das1k_phase_ssize128_config(to_dataset_config):
+    """
+    to_dataset_config中保存mask_mode和mask_ratio
+    grid0.1
+    """
+    config = _get_masked_das1k_config(to_dataset_config)
+    config.root_path=str(Path(config.root_path) / "phase/matrixs/scale_128")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_masked_das1k_phase_ssize256_config(to_dataset_config):
+    """
+    to_dataset_config中保存mask_mode和mask_ratio
+    grid0.1
+    """
+    config = _get_masked_das1k_config(to_dataset_config)
+    config.root_path=str(Path(config.root_path) / "phase/matrixs/scale_256")
+    config.list_dir=str(Path(config.list_dir) / "phase")
+    return config
+
+def get_masked_das1k_intensity_ssize64_config(to_dataset_config):
+    """
+    to_dataset_config中保存mask_mode和mask_ratio
+    grid0.1
+    """
+    config = _get_masked_das1k_config(to_dataset_config)
+    config.root_path=str(Path(config.root_path) / "intensity/matrixs/scale_64")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_masked_das1k_intensity_ssize128_config(to_dataset_config):
+    """
+    to_dataset_config中保存mask_mode和mask_ratio
+    grid0.1
+    """
+    config = _get_masked_das1k_config(to_dataset_config)
+    config.root_path=str(Path(config.root_path) / "intensity/matrixs/scale_128")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_masked_das1k_intensity_ssize256_config(to_dataset_config):
+    """
+    to_dataset_config中保存mask_mode和mask_ratio
+    grid0.1
+    """
+    config = _get_masked_das1k_config(to_dataset_config)
+    config.root_path=str(Path(config.root_path) / "intensity/matrixs/scale_256")
+    config.list_dir=str(Path(config.list_dir) / "intensity")
     return config
 
 def get_das1k_resize_intensity_ssize64_config():

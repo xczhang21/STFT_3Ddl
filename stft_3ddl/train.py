@@ -38,6 +38,9 @@ parser.add_argument('--batch_size', type=int, default=0,
 # 传给train_config的参数
 parser.add_argument('--to_config', type=str, default=None,
                     help="传给train config的参数")
+# 传给datasets_config的参数
+parser.add_argument('--to_dataset_config', type=str, default=None,
+                    help="传给dataset config的参数")
 
 # 
 args = parser.parse_args()
@@ -62,10 +65,14 @@ if __name__ == '__main__':
     assert hasattr(train_configs, f"get_{train_config_name}"), f"Config 'get_{train_config_name}' does not exist in the train_config."
     assert callable(getattr(train_configs, f"get_{train_config_name}")), f"get_{train_config_name} is not callable."
     
-    if args.to_config == None:
+    if args.to_config is None and args.to_dataset_config is None:
         train_config = getattr(train_configs, f"get_{train_config_name}")()
-    else:
+    elif args.to_config is not None and args.to_dataset_config is not None:
+        train_config = getattr(train_configs, f"get_{train_config_name}")([args.to_config, args.to_dataset_config])
+    elif args.to_config is not None:
         train_config = getattr(train_configs, f"get_{train_config_name}")(args.to_config)
+    else: # args.to_dataset_config is not None
+        train_config = getattr(train_configs, f"get_{train_config_name}")(args.to_dataset_config)
 
     train_config.num_workers = args.num_workers
     train_config.save_CAM_interval = args.save_CAM_interval
@@ -81,14 +88,18 @@ if __name__ == '__main__':
 
     # 统一模型的输入通道、分类数与数据集的通道数和分类数
     train_config.net.in_channels = train_config.dataset.num_channels
-    train_config.net.num_classes = train_config.dataset.num_classes
+    if hasattr(train_config.dataset, 'num_classes'):
+        train_config.net.num_classes = train_config.dataset.num_classes
 
-    assert train_config.task_type == 'cla', f"Task_type {train_config.task_type} is not 'cla'"
+    SUPPORTED_TASK_TYPES = ['cla', 'mae']
+    assert train_config.task_type in SUPPORTED_TASK_TYPES, \
+        f"Unsupported task_type '{train_config.task_type}'. Supported types: {SUPPORTED_TASK_TYPES}"
 
+    BASE_DIR = "/home/zhang/zxc/STFT_3DDL/"
 
     exp = 'STFT_3Ddl_' + train_config.dataset_name
     
-    snapshot_path = "../model/{}/{}/".format(exp, train_config_name)
+    snapshot_path = BASE_DIR + "model/{}/{}/".format(exp, train_config_name)
     snapshot_path = snapshot_path + train_config.net_name
     snapshot_path = snapshot_path + f"_{args.to_config}" if args.to_config != None else snapshot_path
     snapshot_path = snapshot_path + '_pretrain' if train_config.is_pretrain else snapshot_path

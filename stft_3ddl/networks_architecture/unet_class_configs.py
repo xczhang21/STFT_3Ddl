@@ -24,3 +24,20 @@ if __name__ == '__main__':
 
     output = model(input_data)
     print(output.shape)
+
+    # 测试MaskedUNetWrapper
+    print("\n Testing MaskedUNetWrapper...")
+
+    from masked_unet_wrapper import MaskedUNetWrapper
+
+    # 用一样的config, 但要把out_channels 改成输入通道（重建）
+    config.out_channels = config.in_channels
+    model = MaskedUNetWrapper(config)
+
+    x = torch.randn(32, 1, 128, 128)
+    mask = torch.zeros_like(x)
+    mask[:, :, 32:96, 32:96] = 1 # 中间区域做mask
+
+    pred, mask_out = model(x, mask)
+    print("MaskedUNetWrapper pred shape:", pred.shape)
+    print("Mask shape:", mask_out.shape)

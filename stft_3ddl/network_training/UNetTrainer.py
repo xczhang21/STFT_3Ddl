@@ -290,8 +290,23 @@ if __name__ == '__main__':
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
 
+    pretrained_encoder_path = "/home/zhang/zxc/STFT_3DDL/model/STFT_3Ddl_das1k/phase_maskedunetwrapper_ss64_train/MaskedUNetWrapper_random0.5_epo100_bs32_lr0.01_ssize64/01/pretrained_encoder_epoch99.pth"
+
+
     config_net = get_UNet_config()
     network = UNet(config=config_net)
+
+    # # 加载预训练的编码器权重
+    # if os.path.exists(pretrained_encoder_path):
+    #     pretrained_state = torch.load(pretrained_encoder_path, map_location="cpu", weights_only=True)
+    #     missing, unexpected = network.load_state_dict(pretrained_state, strict=False)
+    #     print(f"[INFO] Loaded pretrained encoder from {pretrained_encoder_path}")
+    #     print(f"[INFO] Missing keys: {missing}")
+    #     print(f"[INFO] Unexpected keys: {unexpected}")
+    # else:
+    #     print(f"[WARNING] Pretrained encoder not found at {pretrained_encoder_path}, using random init.")
+
+
     network = network.cuda()
 
     trainer = UNet_trainer_das1k(args=config, model=network, snapshot_path=snapshot_path)
