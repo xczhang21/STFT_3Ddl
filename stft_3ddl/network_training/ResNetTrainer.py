@@ -1,4 +1,4 @@
-import logging
+
 import sys
 import random
 from torchvision.transforms import transforms
@@ -29,8 +29,11 @@ from utilities.evaluation_method import log_metrics
 def ResNet_trainer_das1k(args, model, snapshot_path):
     from datasets.dataset_das1k import das1k_dataset, RandomGenerator
 
-    transform = transforms.Compose([
-        RandomGenerator()
+    train_transform = transforms.Compose([
+        RandomGenerator(split='train', data_aug=args.train_data_aug)
+    ])
+    test_transform = transforms.Compose([
+        RandomGenerator(split='test', data_aug=args.test_data_aug)
     ])
     logging.basicConfig(
         filename=snapshot_path + '/log.txt',
@@ -48,13 +51,13 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='train',
-        transform=transform
+        transform=train_transform
     )
     db_val = das1k_dataset(
         base_dir=args.dataset.root_path,
         list_dir=args.dataset.list_dir,
         split='test',
-        transform=transform
+        transform=test_transform
     )
     class_names = args.dataset.class_names
     
@@ -111,6 +114,19 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
             all_train_labels.append(label_batch)
             all_train_preds.append(predictions)
             all_train_probs.append(probs)
+
+
+            # # 坍塌检测
+            # with torch.no_grad():
+            #     x0 = spectrum_batch
+            #     x1 = model.conv1(x0)
+            #     # 批内方差（越接近0越塌）
+            #     feat_var = x1.flatten(1).var(dim=0).mean()
+            #     # 批内平均余弦相似度（越接近1越塌）
+            #     x1f = x1.flatten(1)
+            #     csim = torch.nn.functional.cosine_similarity(x1f[:,None,:], x1f[None,:,:], dim=-1)
+            #     upper = csim[~torch.eye(csim.size(0), dtype=bool, device=csim.device)]
+            #     print(f"[iter {step}] stem feat_var={feat_var.item():.6e}  mean_csim={upper.mean().item():.4f}")
 
     
         # 更新学习率
@@ -189,6 +205,8 @@ def ResNet_trainer_das1k(args, model, snapshot_path):
     writer.close()
     return f"val_loss:{avg_val_loss:.5f}\t val_acc:{val_metrics['accuracy']:.5f}\t val_pre:{val_metrics['precision']}"
 
+ResNet_trainer_das1k_aug = ResNet_trainer_das1k
+
 
 # 文件测试
 if __name__ == '__main__':
@@ -236,13 +254,13 @@ if __name__ == '__main__':
     config.dataset.list_dir = "/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K/phase"
     config.dataset.num_channels = 1
     config.dataset.num_classes = 10
-    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_64"
+    config.dataset.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K/phase/matrixs/scale_256"
     config.dataset.class_names = ['cathorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
                           'rain', 'shoveling', 'thunderstorm', 'welding']
     # config.dataset.class_names = ['汽车喇叭', '钻孔', '脚步声', '手锤', '手锯', '电镐',
                     #   '雨', '铲', '雷雨', '焊接']
     config.dataset_name = "das1k"
-    config.dataset.spectrum_size = 64
+    config.dataset.spectrum_size = 256
     config.is_pretrain = False
     config.max_epochs = 150
     config.n_gpu = 1
@@ -273,6 +291,17 @@ if __name__ == '__main__':
     snapshot_path = snapshot_path + '_bs' + str(config.batch_size)
     snapshot_path = snapshot_path + '_lr' + str(config.base_lr)
     snapshot_path = snapshot_path + '_ssize' + str(config.dataset.spectrum_size)
+
+    # 控制数据加载的线程数
+    config.num_workers = 1
+
+    # 测试模块中设置为使用数据增强
+    config.train_data_aug = False
+    config.test_data_aug = False
+
+    # 控制CAM保存间隔
+    config.save_CAM_interval = 10
+
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)

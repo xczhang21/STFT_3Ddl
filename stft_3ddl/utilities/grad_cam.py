@@ -23,6 +23,82 @@ class GradCAM:
 
     def save_gradients(self, module, grad_input, grad_output):
         self.gradients = grad_output[0]
+    
+    def _tokens_to_fmap_np(self, acts_np, grads_np, model):
+        """
+        把 Swin hook 拿到的 token 激活/梯度 (L, C) 或 (C, L) 还原为 (C, Hf, Wf)
+        acts_np, grads_np: numpy arrays （已取到 target_batch 后的 2D 数组）
+        返回: acts_fmap, grads_fmap 形状均为 (C, Hf, Wf)
+        """
+        import numpy as np
+
+        # 统一 grad 形状到与 acts 对齐（(L, C) 或 (C, L)）
+        if acts_np.ndim == 2 and grads_np.ndim == 2:
+            if acts_np.shape != grads_np.shape:
+                if acts_np.shape == grads_np.T.shape:
+                    grads_np = grads_np.T  # (C, L) -> (L, C)
+
+        # 如果已经是 (C, H, W) 就直接返回
+        if acts_np.ndim == 3 and grads_np.ndim == 3:
+            return acts_np, grads_np
+
+        # 走到这里，说明是 2D token：按 (L, C) 处理
+        if acts_np.ndim != 2 or grads_np.ndim != 2:
+            raise ValueError(f"Unexpected activations/gradients shape: {acts_np.shape}, {grads_np.shape}")
+
+        L, C = acts_np.shape
+
+        # 兼容 timm 封装（.backbone）与裸 SwinTransformer
+        bb = getattr(model, 'backbone', model)
+
+        # 尝试优先用各个 block 自带的 input_resolution 匹配 (Hf, Wf)
+        Hf = Wf = None
+        try:
+            layers = getattr(bb, 'layers', None)
+            if layers is not None:
+                # 遍历所有 stage 和 block，找乘积等于 L 的分辨率（选最靠后的一个，语义更强）
+                for s in reversed(range(len(layers))):
+                    blocks = getattr(layers[s], 'blocks', None)
+                    if blocks is None:
+                        continue
+                    for b in reversed(range(len(blocks))):
+                        blk = blocks[b]
+                        res = getattr(blk, 'input_resolution', None)  # 例如 (32, 32)
+                        if res is None:
+                            continue
+                        h, w = int(res[0]), int(res[1])
+                        if h * w == L:
+                            Hf, Wf = h, w
+                            break
+                    if Hf is not None:
+                        break
+        except Exception:
+            pass
+
+        # 如果没匹配到，就用 patch_embed.grid_size + 2^stage 的方式回推
+        if Hf is None:
+            try:
+                Hp, Wp = bb.patch_embed.grid_size  # (H/4, W/4)
+                if layers is not None:
+                    for s in range(len(layers)):
+                        h = int(Hp // (2 ** s))
+                        w = int(Wp // (2 ** s))
+                        if h * w == L:
+                            Hf, Wf = h, w
+                            break
+            except Exception:
+                Hf = Wf = None
+
+        # 仍然没有的话，兜底用最接近的方形
+        if Hf is None:
+            side = int(np.sqrt(L))
+            Hf, Wf = side, max(L // max(side, 1), 1)
+
+        # (L, C) -> (Hf, Wf, C) -> (C, Hf, Wf)
+        acts_np  = acts_np.reshape(Hf, Wf, C).transpose(2, 0, 1).copy()
+        grads_np = grads_np.reshape(Hf, Wf, C).transpose(2, 0, 1).copy()
+        return acts_np, grads_np
+
 
     def generate_cam(self, input_tensor, target_class=None, target_batch=0):
         # 为多输入模型改cam
@@ -60,6 +136,10 @@ class GradCAM:
         # 获取当前样本的梯度和激活
         gradients = self.gradients[target_batch].cpu().data.numpy()
         activations = self.activations[target_batch].cpu().data.numpy()
+
+        # >>> 新增：若是 Swin 的 token，就先还原成 (C, Hf, Wf)
+        if activations.ndim == 2 or gradients.ndim == 2:
+            activations, gradients = self._tokens_to_fmap_np(activations, gradients, self.model)
 
         # 权重计算(全局平均池化)
         weigths = np.mean(gradients, axis=(1, 2)) # 对每个通道计算权重

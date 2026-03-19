@@ -14,25 +14,25 @@ class BaseCNN(nn.Module):
         super(BaseCNN, self).__init__()
         self.net = nn.Sequential(OrderedDict([
             ("conv1", nn.Conv2d(in_channels, features, kernel_size=3, padding=1)),
-            # ("bn1", nn.BatchNorm2d(features)),
+            ("bn1", nn.BatchNorm2d(features)),
             ("relu1", nn.ReLU(inplace=False)),
             ("pool1", nn.MaxPool2d(kernel_size=2)),
             ("drop1", nn.Dropout(p=0.5)),
 
             ("conv2", nn.Conv2d(features, features * 2, kernel_size=3, padding=1)),
-            # ("bn2", nn.BatchNorm2d(features*2)),
+            ("bn2", nn.BatchNorm2d(features*2)),
             ("relu2", nn.ReLU(inplace=False)),
             ("pool2", nn.MaxPool2d(kernel_size=2)),
             ("drop2", nn.Dropout(p=0.5)),
 
             ("conv3", nn.Conv2d(features * 2, features * 4, kernel_size=3, padding=1)),
-            # ("bn3", nn.BatchNorm2d(features*4)),
+            ("bn3", nn.BatchNorm2d(features*4)),
             ("relu3", nn.ReLU(inplace=False)),
             ("pool3", nn.MaxPool2d(kernel_size=2)),
             ("drop3", nn.Dropout(p=0.5)),
 
             ("conv4", nn.Conv2d(features * 4, features * 4, kernel_size=3, padding=1)),
-            # ("bn4", nn.BatchNorm2d(features*4)),
+            ("bn4", nn.BatchNorm2d(features*4)),
             ("relu4", nn.ReLU(inplace=False)),
             ("pool4", nn.MaxPool2d(kernel_size=2)),
             ("drop4", nn.Dropout(p=0.5)),

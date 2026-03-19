@@ -192,6 +192,7 @@ def UNet_trainer_das1k(args, model, snapshot_path):
     writer.close()
     return f"val_loss:{avg_val_loss:.5f}\t val_acc:{val_metrics['accuracy']:.5f}\t val_pre:{val_metrics['precision']}"
 
+UNet_trainer_das1k_aug = UNet_trainer_das1k
 
 # 文件测试
 if __name__ == '__main__':
@@ -285,7 +286,7 @@ if __name__ == '__main__':
     config.test_data_aug = True
 
     # 控制CAM保存间隔
-    config.save_CAM_interval = 10
+    config.save_CAM_interval = 1
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)

@@ -8,6 +8,7 @@ from .mulit_feature_unet_v3_class_configs import *
 from .mulit_feature_unet_v4_class_configs import *
 from .mulit_feature_unet_v5_class_configs import *
 from .mulit_feature_optional_fusion_unet_class_configs import *
+from .convnext_class_configs import *
 
 CONFIGS = {
     'ResNet': get_ResNet_config(),
@@ -32,6 +33,7 @@ CONFIGS = {
         "learnable_spatial_wise_add": get_MFOFUNet_learnable_spatial_wise_add_config(),
         "learnable_channel_wise_add": get_MFOFUNet_learnable_channel_wise_add_config(),
     },
-    "MaskedUNetWrapper": get_UNet_config()
+    "MaskedUNetWrapper": get_UNet_config(),
+    "ConvNeXt": get_ConvNeXt_config()
 
 }

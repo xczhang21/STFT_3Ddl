@@ -85,9 +85,9 @@ def IPCNN_trainer_mfdas1k(args, model, snapshot_path):
     mse_loss = MSELoss() # MSE适用于回归任务
     ce_loss = CrossEntropyLoss() # 交叉熵适用于分类任务
 
-    # optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.05)
-    # scheduler = lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.9)
-    optimizer = optim.Adam(model.parameters(), lr=base_lr, weight_decay=1e-4)
+    optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.05)
+    scheduler = lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.9)
+    # optimizer = optim.Adam(model.parameters(), lr=base_lr, weight_decay=1e-3)
 
     max_epoch = args.max_epochs
     max_iterations = args.max_epochs * len(trainloader)
@@ -126,7 +126,7 @@ def IPCNN_trainer_mfdas1k(args, model, snapshot_path):
 
     
         # 更新学习率
-        # scheduler.step()
+        scheduler.step()
 
         all_train_labels = torch.cat(all_train_labels)
         all_train_preds = torch.cat(all_train_preds)
@@ -218,6 +218,8 @@ def IPCNN_trainer_mfdas1k(args, model, snapshot_path):
 
     writer.close()
     return f"val_loss:{avg_val_loss:.5f}\t val_acc:{val_metrics['accuracy']:.5f}\t val_pre:{val_metrics['precision']}"
+
+IPCNN_trainer_mfdas1k_aug = IPCNN_trainer_mfdas1k
 
 # 文件测试
 if __name__ == '__main__':

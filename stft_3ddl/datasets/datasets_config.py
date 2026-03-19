@@ -62,6 +62,32 @@ def _get_mfdas1k_config():
                           'rain', 'shoveling', 'thunderstorm', 'welding']
     return config
 
+def _get_mfdas1k_aug_config(to_dataset_config):
+    """
+    从 to_dataset_config 字符串中解析出1D数据时所用的数据增强方法
+    如 'DAS1K_cutout'
+    """
+
+    config = ml_collections.ConfigDict()
+    config.num_channels = 1
+    config.num_classes = 10
+    config.type = "mf"
+    config.data_aug_method = to_dataset_config
+    config.root_path = "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_augmentations/"
+    if config.data_aug_method in ['DAS1K_SNSCS4', 'DAS1K_SNSCS5', 'DAS1K_SNSCS6']:
+        config.root_path = str(Path(config.root_path) / 'DAS1K_SNSCS7')
+    else:
+        config.root_path = str(Path(config.root_path) / config.data_aug_method)
+    # 检查路径是否存在
+    assert Path(config.root_path).exists(), f"Path {config.root_path} does not exists, data_aug_method {config.data_aug_method} not exists."
+
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K_augmentations/") / config.data_aug_method)
+
+    # class_names 用于生成混淆矩阵图
+    config.class_names = ['carhorn', 'drilling', 'footsteps', 'handhammer', 'handsaw', 'jackhammer',
+                          'rain', 'shoveling', 'thunderstorm', 'welding']
+    return config
+    
 
 def _get_msdas1k_config():
     """
@@ -102,6 +128,34 @@ def _get_das1k_padding0_config():
 def _get_das1k_resize_config():
     config = _get_das1k_config()
     config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_resize/"))
+    return config
+
+def get_das1k_aug_kfold_pi_ssize256_config(to_dataset_config):
+    data_aug_method, kfold = to_dataset_config.split('-')
+    config = _get_das1k_config()
+    config.num_channels = 2
+    config.data_aug_method = data_aug_method
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_augmentations/"))
+    config.root_path = str(Path(config.root_path) / f"{data_aug_method}/pi/matrixs/scale_256")
+    i, k = kfold.split('_')
+    config.kfold = f"{i}/{k}"
+    config.list_dir = str(Path(f"/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K_K-Fold_augmentations/{k}-Fold/{data_aug_method}/{i}"))
+    return config
+
+def get_mfdas1k_aug_kfold_pi_ssize256_config(to_dataset_config):    
+    data_aug_method, kfold = to_dataset_config.split('-')
+    config = _get_mfdas1k_aug_config(data_aug_method)
+    config.spectrum_size = 256
+    i, k = kfold.split('_')
+    config.kfold = f"{i}/{k}"
+    config.list_dir = str(Path(f"/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K_K-Fold_augmentations/{k}-Fold/{data_aug_method}/{i}"))
+    return config
+
+def get_mfdas1k_aug_pi_ssize256_config(to_dataset_config):
+    config = _get_mfdas1k_aug_config(to_dataset_config)
+    config.spectrum_size = 256
+    config.root_path = str(Path(config.root_path))
+    config.list_dir = str(Path(config.list_dir) / "phase")
     return config
 
 def get_masked_das1k_phase_ssize64_config(to_dataset_config):
@@ -393,6 +447,15 @@ def get_das1k_pi_ssize256_config():
     config.list_dir = str(Path(config.list_dir) / "pi")
     return config
 
+def get_das1k_aug_pi_ssize256_config(to_dataset_config):
+    config = _get_das1k_config()
+    config.num_channels = 2
+    config.data_aug_method = to_dataset_config
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_augmentations/"))
+    config.root_path = str(Path(config.root_path) / f"{to_dataset_config}/pi/matrixs/scale_256")
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K_augmentations/") / config.data_aug_method / "phase")
+    return config
+
 def get_das1k_intensity_ssize64_config():
     config = _get_das1k_config()
     config.root_path = str(Path(config.root_path) / "intensity/matrixs/scale_64")
@@ -409,6 +472,14 @@ def get_das1k_intensity_ssize256_config():
     config = _get_das1k_config()
     config.root_path = str(Path(config.root_path) / "intensity/matrixs/scale_256")
     config.list_dir = str(Path(config.list_dir) / "intensity")
+    return config
+
+def get_das1k_aug_intensity_ssize256_config(to_dataset_config):
+    config = _get_das1k_config()
+    config.data_aug_method = to_dataset_config
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_augmentations/"))
+    config.root_path = str(Path(config.root_path) / f"{to_dataset_config}/intensity/matrixs/scale_256")
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K_augmentations/") / config.data_aug_method / "phase") # intensity用phase的list
     return config
 
 def get_das1k_ssize64_config():
@@ -440,3 +511,11 @@ def get_das1k_ssize256_config():
     config.list_dir=str(Path(config.list_dir) / "phase")
     return config
 
+def get_das1k_aug_phase_ssize256_config(to_dataset_config):
+    config = _get_das1k_config()
+    config.data_aug_method = to_dataset_config
+    config.root_path = str(Path("/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/DAS1K_augmentations/"))
+    config.root_path = str(Path(config.root_path) / f"{to_dataset_config}/phase/matrixs/scale_256")
+    config.list_dir = str(Path("/home/zhang/zxc/STFT_3DDL/STFT_3Ddl/stft_3ddl/lists/DAS1K_augmentations/") / config.data_aug_method / "phase")
+    return config
+get_das1k_aug_ssize256_config = get_das1k_aug_phase_ssize256_config

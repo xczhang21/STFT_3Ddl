@@ -42,7 +42,7 @@ parser.add_argument('--to_config', type=str, default=None,
 parser.add_argument('--to_dataset_config', type=str, default=None,
                     help="传给dataset config的参数")
 
-# 
+
 args = parser.parse_args()
 
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     if args.to_config is None and args.to_dataset_config is None:
         train_config = getattr(train_configs, f"get_{train_config_name}")()
     elif args.to_config is not None and args.to_dataset_config is not None:
-        train_config = getattr(train_configs, f"get_{train_config_name}")([args.to_config, args.to_dataset_config])
+        train_config = getattr(train_configs, f"get_{train_config_name}")(args.to_config, args.to_dataset_config)
     elif args.to_config is not None:
         train_config = getattr(train_configs, f"get_{train_config_name}")(args.to_config)
     else: # args.to_dataset_config is not None
@@ -98,10 +98,13 @@ if __name__ == '__main__':
     BASE_DIR = "/home/zhang/zxc/STFT_3DDL/"
 
     exp = 'STFT_3Ddl_' + train_config.dataset_name
+
+    
     
     snapshot_path = BASE_DIR + "model/{}/{}/".format(exp, train_config_name)
     snapshot_path = snapshot_path + train_config.net_name
     snapshot_path = snapshot_path + f"_{args.to_config}" if args.to_config != None else snapshot_path
+    snapshot_path = snapshot_path + f"_{args.to_dataset_config}" if args.to_dataset_config != None else snapshot_path
     snapshot_path = snapshot_path + '_pretrain' if train_config.is_pretrain else snapshot_path
     snapshot_path = snapshot_path + '_epo' + str(train_config.max_epochs)
     snapshot_path = snapshot_path + '_bs' + str(train_config.batch_size)
