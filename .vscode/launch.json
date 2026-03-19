@@ -24,6 +24,109 @@
             "justMyCode": true
         },
         {
+            "name": "t_test_from_kfold_txt",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--input_txt",
+                "/home/zhang/zxc/STFT_3DDL/model/kfold_statistics/kfold_results.txt",
+                "--save_dir",
+                "/home/zhang/zxc/STFT_3DDL/model/kfold_statistics"
+            ]
+        },
+        {
+            "name": "read_tensorboard_kfold_stats",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--model_root",
+                "/home/zhang/zxc/STFT_3DDL/model"
+            ]
+        },
+        {
+            "name": "convnext_pi_ss256_kfold_train_aug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "convnext_aug_ss256_kfold_train",
+                "--prepro_method",
+                "pi",
+                "--to_dataset_config",
+                "DAS1K_SNSCS3-1_10"
+            ]
+        },
+        {
+            "name": "ipcnn_pi_ss256_kfold_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "ipcnn_ss256_kfold_train",
+                "--prepro_method",
+                "pi",
+                "--to_dataset_config",
+                "1_10"
+            ]
+        },
+        {
+            "name": "ipcnn_pi_ss64_train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_config",
+                "ipcnn_ss64_train",
+                "--prepro_method",
+                "pi",
+            ]
+        },
+        {
+            "name": "mfofunet_pi_ss256_train_learnable_add_res_aug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": [
+                "--train_config",
+                "mfofunet_learnableadd_aug_ss256_train",
+                "--prepro_method",
+                "pi",
+                "--to_config",
+                "learnable_add_nores",
+                "--to_dataset_config",
+                "DAS1K_cutout"
+            ],
+        },
+        {
+            "name": "create_auto_win_stft",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--dataset_path",
+                "/home/zhang/zxc/STFT_3DDL/DATASETS/raw_data/DAS1K_cutout",
+                "--save_path",
+                "/home/zhang/zxc/STFT_3DDL/DATASETS/preprocessed_data/augmentations/DAS1K_cutout"
+            ]
+        },
+        {
             "name": "maskedunetwrapper_phase_ss64_train",
             "type": "debugpy",
             "request": "launch",
